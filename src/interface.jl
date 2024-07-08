@@ -64,12 +64,12 @@ function Base.getindex(x::XLTable, inds::Vararg{Any,2})
 end
 
 function Base.getindex(x::XLTable, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr)
+    row_range, column_range = parse_cell_range(addr, size(x))
     return getindex(x, row_range, column_range)
 end
 
 function Base.setindex!(x::XLTable, value::Any, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr)
+    row_range, column_range = parse_cell_range(addr, size(x))
     return setindex!(x, value, row_range, column_range)
 end
 

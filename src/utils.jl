@@ -48,6 +48,16 @@ function try_parse_range_of_cells(x::AbstractString)
     end
 end
 
+function try_parse_range_of_cells(x::AbstractString, dims::Dims)
+    result = match(r"^([A-Z]+[1-9]+[0-9]*):([A-Z]+)$", x)
+    return if !isnothing(result)
+        l_addr, r_col_addr = result
+        r_row_addr = dims[1]
+        l_col_addr, l_row_addr = parse_cell_addr(l_addr)
+        l_row_addr:r_row_addr, l_col_addr:column_letter_to_index(r_col_addr)
+    end
+end
+
 function try_parse_single_cell(x::AbstractString)
     result = match(r"^([A-Z]+)([1-9]+[0-9]*)$", x)
     return if !isnothing(result)
@@ -72,8 +82,11 @@ function try_parse_single_column(x::AbstractString)
     end
 end
 
-function parse_cell_range(addr::AbstractString)
+function parse_cell_range(addr::AbstractString, dims::Dims)
     result = try_parse_range_of_cells(addr)
+    !isnothing(result) && return result
+
+    result = try_parse_range_of_cells(addr, dims)
     !isnothing(result) && return result
 
     result = try_parse_single_cell(addr)
