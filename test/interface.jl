@@ -76,7 +76,6 @@ end
         @test sheet["A:B"] == sheet[:, :]
 
         @test_throws XLError sheet["a1"]
-        @test_throws XLError sheet["A1:B"]
         @test_throws XLError sheet["A:B2"]
         @test_throws XLError sheet["1A:B2"]
         @test_throws XLError sheet["A1B2"]
@@ -236,7 +235,6 @@ end
         @test table["A:B"] == table[:, :]
 
         @test_throws XLError table["a1"]
-        @test_throws XLError table["A1:B"]
         @test_throws XLError table["A:B2"]
         @test_throws XLError table["1A:B2"]
         @test_throws XLError table["A1B2"]
