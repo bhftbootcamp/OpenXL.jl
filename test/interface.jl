@@ -72,12 +72,30 @@ end
             "bigint neg",
         ]
 
+        @test sheet["A8:B"] == XLTable(
+            [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"],
+        )
+
+        @test sheet["A:B8"] == XLTable(
+            [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"],
+        )
+
         @test sheet["A1:B2"] == XLTable(["text" "regular_text"; "integer" 102.0])
         @test sheet["A:B"] == sheet[:, :]
 
         @test_throws XLError sheet["a1"]
-        @test_throws XLError sheet["A1:B"]
-        @test_throws XLError sheet["A:B2"]
+        @test_throws XLError sheet["A:A:B"]
+        @test_throws XLError sheet["A::B"]
+        @test_throws XLError sheet["A1:1A"]
+        @test_throws XLError sheet["a:B"]
+        @test_throws XLError sheet["A:b"]
+        @test_throws XLError sheet[":A"]
+        @test_throws XLError sheet["A:"]
+        @test_throws XLError sheet[":A:"]
+        @test_throws XLError sheet["1:A:"]
+        @test_throws XLError sheet[":A:1"]
+        @test_throws XLError sheet[":A:B"]
+        @test_throws XLError sheet["A:B:"]
         @test_throws XLError sheet["1A:B2"]
         @test_throws XLError sheet["A1B2"]
         @test_throws XLError sheet["A101:B02"]
@@ -232,12 +250,30 @@ end
             "bigint neg",
         ]
 
+        @test table["A8:B"] == XLTable(
+            [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"],
+        )
+
+        @test table["A:B8"] == XLTable(
+            [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"],
+        )
+
         @test table["A1:B2"] == XLTable(["text" "regular_text"; "integer" 102.0])
         @test table["A:B"] == table[:, :]
 
         @test_throws XLError table["a1"]
-        @test_throws XLError table["A1:B"]
-        @test_throws XLError table["A:B2"]
+        @test_throws XLError table["A:A:B"]
+        @test_throws XLError table["A::B"]
+        @test_throws XLError table["A1:1A"]
+        @test_throws XLError table["a:B"]
+        @test_throws XLError table["A:b"]
+        @test_throws XLError table[":A"]
+        @test_throws XLError table["A:"]
+        @test_throws XLError table[":A:"]
+        @test_throws XLError table["1:A:"]
+        @test_throws XLError table[":A:1"]
+        @test_throws XLError table[":A:B"]
+        @test_throws XLError table["A:B:"]
         @test_throws XLError table["1A:B2"]
         @test_throws XLError table["A1B2"]
         @test_throws XLError table["A101:B02"]
