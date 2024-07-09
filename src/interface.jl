@@ -305,7 +305,7 @@ struct XLWorkbook <: AbstractVector{XLSheet}
             result = Matrix{Any}(nothing, nrow(sheet), ncol(sheet))
             for row in sheet.sheetData.row
                 for cell in row.c
-                    column_addr, _ = parse_cell_addr(cell.r)
+                    column_addr = parse_cell_addr(cell.r).column
                     result[row.r, column_addr] = xl[cell]
                 end
             end

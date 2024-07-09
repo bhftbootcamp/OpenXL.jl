@@ -107,7 +107,7 @@ function nrow(s::XMLSheet)
 end
 
 function ncol(s::XMLSheet)
-    return maximum([parse_cell_addr(last(x.c).r)[1] for x in s.sheetData.row if !isempty(x.c)], init = 0)
+    return maximum([parse_cell_addr(last(x.c).r).column for x in s.sheetData.row if !isempty(x.c)], init = 0)
 end
 
 #__ XMLRelationships
