@@ -63,14 +63,37 @@ function Base.getindex(x::XLTable, inds::Vararg{Any,2})
     return data isa Matrix ? XLTable(data) : data
 end
 
+function range_to_indices(x::XLTable, parts::NTuple{2,CellRange})
+    l_part, r_part = parts
+    num_row = xl_nrow(x)
+
+    return if all(isnothing, (r_part.row, r_part.column))
+        if isnothing(l_part.row)
+            (:), l_part.column
+        else
+            l_part.row, l_part.column
+        end
+    else
+        if isnothing(l_part.row) && isnothing(r_part.row)
+            (:), (l_part.column:r_part.column)
+        elseif isnothing(r_part.row)
+            (l_part.row:num_row), (l_part.column:r_part.column)
+        elseif isnothing(l_part.row)
+            (r_part.row:num_row), (l_part.column:r_part.column)
+        else
+            (l_part.row:r_part.row), (l_part.column:r_part.column)
+        end
+    end
+end
+
 function Base.getindex(x::XLTable, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr)
-    return getindex(x, row_range, column_range)
+    inds = range_to_indices(x, parse_cell_range(addr))
+    return getindex(x, inds...)
 end
 
 function Base.setindex!(x::XLTable, value::Any, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr)
-    return setindex!(x, value, row_range, column_range)
+    inds = range_to_indices(x, parse_cell_range(addr))
+    return setindex!(x, value, inds...)
 end
 
 function Base.setindex!(x::XLTable, value::Any, inds...)
@@ -282,7 +305,7 @@ struct XLWorkbook <: AbstractVector{XLSheet}
             result = Matrix{Any}(nothing, nrow(sheet), ncol(sheet))
             for row in sheet.sheetData.row
                 for cell in row.c
-                    column_addr, _ = parse_cell_addr(cell.r)
+                    column_addr = parse_cell_addr(cell.r).column
                     result[row.r, column_addr] = xl[cell]
                 end
             end
