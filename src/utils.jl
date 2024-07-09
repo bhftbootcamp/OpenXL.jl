@@ -29,8 +29,8 @@ function gen_column_keys(n::Int, alt_keys::Dict{String,String})
 end
 
 struct CellRange
-    column::Union{Nothing,Int}
-    row::Union{Nothing,Int}
+    column::Maybe{Int}
+    row::Maybe{Int}
 end
 
 function parse_cell_addr(addr::AbstractString)
