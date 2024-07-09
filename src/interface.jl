@@ -63,14 +63,39 @@ function Base.getindex(x::XLTable, inds::Vararg{Any,2})
     return data isa Matrix ? XLTable(data) : data
 end
 
+function gen_table_indices(x::XLTable, parts::NTuple{2,NTuple{2,Maybe{Int}}})
+    l_part, r_part = parts
+    l_col, l_row = l_part
+    r_col, r_row = r_part
+    n_row, _ = size(x)
+
+    return if all(isnothing, r_part)
+        if isnothing(l_row)
+            (:), l_col
+        else
+            l_row, l_col
+        end
+    else
+        if isnothing(l_row) && isnothing(r_row)
+            (:), l_col:r_col
+        elseif isnothing(r_row)
+            l_row:n_row, l_col:r_col
+        elseif isnothing(l_row)
+            r_row:n_row, l_col:r_col
+        else
+            l_row:r_row, l_col:r_col
+        end
+    end    
+end
+
 function Base.getindex(x::XLTable, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr, size(x))
-    return getindex(x, row_range, column_range)
+    inds = gen_table_indices(x, parse_cell_range(addr))
+    return getindex(x, inds...)
 end
 
 function Base.setindex!(x::XLTable, value::Any, addr::AbstractString)
-    row_range, column_range = parse_cell_range(addr, size(x))
-    return setindex!(x, value, row_range, column_range)
+    inds = gen_table_indices(x, parse_cell_range(addr))
+    return setindex!(x, value, inds...)
 end
 
 function Base.setindex!(x::XLTable, value::Any, inds...)

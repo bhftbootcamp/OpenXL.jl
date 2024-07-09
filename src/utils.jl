@@ -29,74 +29,45 @@ function gen_column_keys(n::Int, alt_keys::Dict{String,String})
 end
 
 function parse_cell_addr(addr::AbstractString)
-    result = match(r"^([A-Z]+)([1-9]+[0-9]*)$", addr)
-    return if isnothing(result)
+    result = match(r"^([A-Z]+)([1-9]+[0-9]*)?$", addr)
+    if isnothing(result)
         throw(XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."))
     else
         column_key, row_index = result
-        column_letter_to_index(column_key), parse(Int64, row_index)
+
+        col_ind = if isnothing(column_key)
+            throw(XLError("Invalid column address symbol. Expected 'A', 'A1', 'AB12', etc., got $addr."))
+        else
+            column_letter_to_index(column_key)
+        end
+
+        row_ind = if isnothing(row_index)
+            nothing
+        else
+            parse(Int64, row_index)
+        end
+
+        return col_ind, row_ind
     end
 end
 
-function try_parse_range_of_cells(x::AbstractString)
-    result = match(r"^([A-Z]+[1-9]+[0-9]*):([A-Z]+[1-9]+[0-9]*)$", x)
-    return if !isnothing(result)
-        l_addr, r_addr = result
-        l_col_addr, l_row_addr = parse_cell_addr(l_addr)
-        r_col_addr, r_row_addr = parse_cell_addr(r_addr)
-        l_row_addr:r_row_addr, l_col_addr:r_col_addr
+
+function parse_cell_range(addr::AbstractString)
+    if isempty(addr)
+        throw(XLError("Empty cell range."))
     end
-end
 
-function try_parse_range_of_cells(x::AbstractString, dims::Dims)
-    result = match(r"^([A-Z]+[1-9]+[0-9]*):([A-Z]+)$", x)
-    return if !isnothing(result)
-        l_addr, r_col_addr = result
-        r_row_addr = dims[1]
-        l_col_addr, l_row_addr = parse_cell_addr(l_addr)
-        l_row_addr:r_row_addr, l_col_addr:column_letter_to_index(r_col_addr)
+    parts = split(addr, ':', limit = 2)
+    ranges = NTuple{2,Maybe{Int}}[
+        (nothing, nothing),
+        (nothing, nothing),
+    ]
+
+    for (index, part) in enumerate(parts)
+        if isempty(part)
+            throw(XLError("Incompleted address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr."))
+        end
+        ranges[index] = parse_cell_addr(part)
     end
-end
-
-function try_parse_single_cell(x::AbstractString)
-    result = match(r"^([A-Z]+)([1-9]+[0-9]*)$", x)
-    return if !isnothing(result)
-        column_key, row_index = result
-        parse(Int64, row_index), column_letter_to_index(column_key)
-    end
-end
-
-function try_parse_range_of_columns(x::AbstractString)
-    result = match(r"^([A-Z]+):([A-Z]+)$", x)
-    return if !isnothing(result)
-        l_addr, r_addr = result
-        return (:), column_letter_to_index(l_addr):column_letter_to_index(r_addr)
-    end
-end
-
-function try_parse_single_column(x::AbstractString)
-    result = match(r"^([A-Z]+)$", x)
-    return if !isnothing(result)
-        col_addr = result[1]
-        (:), column_letter_to_index(col_addr)
-    end
-end
-
-function parse_cell_range(addr::AbstractString, dims::Dims)
-    result = try_parse_range_of_cells(addr)
-    !isnothing(result) && return result
-
-    result = try_parse_range_of_cells(addr, dims)
-    !isnothing(result) && return result
-
-    result = try_parse_single_cell(addr)
-    !isnothing(result) && return result
-
-    result = try_parse_range_of_columns(addr)
-    !isnothing(result) && return result
-
-    result = try_parse_single_column(addr)
-    !isnothing(result) && return result
-
-    throw(XLError("Invalid table slice addresses. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr."))
+    return tuple(ranges...)
 end
