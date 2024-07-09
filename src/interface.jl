@@ -63,7 +63,7 @@ function Base.getindex(x::XLTable, inds::Vararg{Any,2})
     return data isa Matrix ? XLTable(data) : data
 end
 
-function range_to_indices(x::XLTable, parts::NTuple{2, CellRange})
+function range_to_indices(x::XLTable, parts::NTuple{2,CellRange})
     l_part, r_part = parts
     n_row, _ = size(x)
 
