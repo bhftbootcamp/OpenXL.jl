@@ -34,19 +34,19 @@ struct CellRange
 end
 
 function parse_cell_addr(addr::AbstractString)
-    result = match(r"^([A-Z]+)([1-9]\d*)?$", addr)
+    match_result = match(r"^([A-Z]+)([1-9]\d*)?$", addr)
 
-    if isnothing(result)
+    if isnothing(match_result)
         throw(
             XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."),
         )
     end
 
-    col_key, row_index = result
-    col_index = column_letter_to_index(col_key)
-    row_index = isnothing(row_index) ? nothing : parse(Int64, row_index)
+    column_letter, row_number = match_result
+    column_index = column_letter_to_index(column_letter)
+    row_index = isnothing(row_number) ? nothing : parse(Int64, row_number)
 
-    return CellRange(col_index, row_index)
+    return CellRange(column_index, row_index)
 end
 
 function parse_cell_range(addr::AbstractString)
@@ -54,9 +54,9 @@ function parse_cell_range(addr::AbstractString)
         throw(XLError("Empty cell range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc."))
     end
 
-    parts = split(addr, ':', limit = 2)
+    range_parts = split(addr, ':', limit = 2)
 
-    if any(isempty, parts)
+    if any(isempty, range_parts)
         throw(
             XLError(
                 "Incomplete address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr.",
@@ -64,7 +64,7 @@ function parse_cell_range(addr::AbstractString)
         )
     end
 
-    inds = parse_cell_addr.(parts)
+    cell_ranges = parse_cell_addr.(range_parts)
 
-    return (inds[1], get(inds, 2, CellRange(nothing, nothing)))
+    return (cell_ranges[1], get(cell_ranges, 2, CellRange(nothing, nothing)))
 end
