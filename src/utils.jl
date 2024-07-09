@@ -28,29 +28,25 @@ function gen_column_keys(n::Int, alt_keys::Dict{String,String})
     end
 end
 
-function parse_cell_addr(addr::AbstractString)
-    result = match(r"^([A-Z]+)([1-9]+[0-9]*)?$", addr)
-    if isnothing(result)
-        throw(XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."))
-    else
-        column_key, row_index = result
-
-        col_ind = if isnothing(column_key)
-            throw(XLError("Invalid column address symbol. Expected 'A', 'A1', 'AB12', etc., got $addr."))
-        else
-            column_letter_to_index(column_key)
-        end
-
-        row_ind = if isnothing(row_index)
-            nothing
-        else
-            parse(Int64, row_index)
-        end
-
-        return col_ind, row_ind
-    end
+struct CellRange
+    column::Union{Nothing,Int}
+    row::Union{Nothing,Int}
 end
 
+function parse_cell_addr(addr::AbstractString)
+    result = match(r"^([A-Z]+)([1-9]\d*)?$", addr)
+
+    if isnothing(result)
+        throw(XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."))
+    end
+
+    col_key, row_index = result
+
+    col_ind = column_letter_to_index(col_key)
+    row_ind = isnothing(row_index) ? nothing : parse(Int64, row_index)
+
+    return CellRange(col_ind, row_ind)
+end
 
 function parse_cell_range(addr::AbstractString)
     if isempty(addr)
@@ -58,16 +54,12 @@ function parse_cell_range(addr::AbstractString)
     end
 
     parts = split(addr, ':', limit = 2)
-    ranges = NTuple{2,Maybe{Int}}[
-        (nothing, nothing),
-        (nothing, nothing),
-    ]
 
-    for (index, part) in enumerate(parts)
-        if isempty(part)
-            throw(XLError("Incompleted address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr."))
-        end
-        ranges[index] = parse_cell_addr(part)
+    if any(isempty, parts)
+        throw(XLError("Incomplete address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr."))
     end
-    return tuple(ranges...)
+
+    vals = parse_cell_addr.(parts)
+
+    return (vals[1], length(vals) == 1 ? CellRange(nothing, nothing) : vals[2])
 end

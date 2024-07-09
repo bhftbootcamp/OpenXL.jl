@@ -63,38 +63,36 @@ function Base.getindex(x::XLTable, inds::Vararg{Any,2})
     return data isa Matrix ? XLTable(data) : data
 end
 
-function gen_table_indices(x::XLTable, parts::NTuple{2,NTuple{2,Maybe{Int}}})
+function range_to_indices(x::XLTable, parts::NTuple{2, CellRange})
     l_part, r_part = parts
-    l_col, l_row = l_part
-    r_col, r_row = r_part
     n_row, _ = size(x)
 
-    return if all(isnothing, r_part)
-        if isnothing(l_row)
-            (:), l_col
+    return if all(isnothing, (r_part.row, r_part.column))
+        if isnothing(l_part.row)
+            (:), l_part.column
         else
-            l_row, l_col
+            l_part.row, l_part.column
         end
     else
-        if isnothing(l_row) && isnothing(r_row)
-            (:), l_col:r_col
-        elseif isnothing(r_row)
-            l_row:n_row, l_col:r_col
-        elseif isnothing(l_row)
-            r_row:n_row, l_col:r_col
+        if isnothing(l_part.row) && isnothing(r_part.row)
+            (:), (l_part.column:r_part.column)
+        elseif isnothing(r_part.row)
+            (l_part.row:n_row), (l_part.column:r_part.column)
+        elseif isnothing(l_part.row)
+            (r_part.row:n_row), (l_part.column:r_part.column)
         else
-            l_row:r_row, l_col:r_col
+            (l_part.row:r_part.row), (l_part.column:r_part.column)
         end
-    end    
+    end
 end
 
 function Base.getindex(x::XLTable, addr::AbstractString)
-    inds = gen_table_indices(x, parse_cell_range(addr))
+    inds = range_to_indices(x, parse_cell_range(addr))
     return getindex(x, inds...)
 end
 
 function Base.setindex!(x::XLTable, value::Any, addr::AbstractString)
-    inds = gen_table_indices(x, parse_cell_range(addr))
+    inds = range_to_indices(x, parse_cell_range(addr))
     return setindex!(x, value, inds...)
 end
 
