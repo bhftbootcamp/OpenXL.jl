@@ -24,28 +24,31 @@ julia&gt; sheet = xlsx[&quot;Ticker24h&quot;]
   2681 │ ZKUSDC   0.1386    3612.7   ⋯  1572.0    1.3895516e6  0.15005404        
   2682 │ ZROUSDC  2.925     437.83   ⋯  7957.0    356187.29    3.07800556   </code></pre><p>You can slice a table using address indexing and then convert the data to a row representation:</p><pre><code class="language-julia-repl hljs">using OpenXL
 
-julia&gt; raw_xlsx = xl_sample_ticker24h_xlsx()
-64075-element Vector{UInt8}:
- 0x50
- 0x4b
-    ⋮
- 0x00
-
-julia&gt; xlsx = xl_parse(raw_xlsx)
+julia&gt; xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 1-element XLWorkbook:
  2682x19 XLSheet(&quot;Ticker24h&quot;)
 
-julia&gt; sheet = xlsx[&quot;Ticker24h&quot;]
-2682x19 XLSheet(&quot;Ticker24h&quot;)
- Sheet │ A        B         C        ⋯  Q         R            S                 
-───────┼────────────────────────────────────────────────────────────────────────
-     1 │ symbol   askPrice  askQty   ⋯  count     volume       weightedAvgPrice  
-     2 │ ETHBTC   0.05296   8.1061   ⋯  473424.0  86904.9028   0.05347515        
-     3 │ LTCBTC   0.001072  308.762  ⋯  43966.0   130937.575   0.00110825        
-     4 │ BNBBTC   0.008633  1.036    ⋯  277360.0  99484.88     0.00883183        
-     ⋮ │  ⋮        ⋮         ⋮        ⋯   ⋮         ⋮            ⋮                      
-  2681 │ ZKUSDC   0.1386    3612.7   ⋯  1572.0    1.3895516e6  0.15005404        
-  2682 │ ZROUSDC  2.925     437.83   ⋯  7957.0    356187.29    3.07800556   </code></pre><p>Table slices can be obtained in the same way as with a regular matrix, which can then also be converted to a column representation:</p><pre><code class="language-julia-repl hljs">using OpenXL
+julia&gt; sheet = xlsx[&quot;Ticker24h&quot;][&quot;A1:E&quot;]
+2682x5 XLTable
+ Sheet │ A        B         C        D         E        
+───────┼────────────────────────────────────────────────
+     1 │ symbol   askPrice  askQty   bidPrice  bidQty 
+     2 │ ETHBTC   0.05296   8.1061   0.05295   50.5655
+     3 │ LTCBTC   0.00107   308.762  0.00107   1433.70
+     4 │ BNBBTC   0.00863   1.036    0.00863   8.139  
+     ⋮ │  ⋮        ⋮          ⋮        ⋮         ⋮        
+  2681 │ ZKUSDC   0.1386    3612.7   0.138     11976.9
+  2682 │ ZROUSDC  2.925     437.83   2.922     353.730
+
+julia&gt; xl_rowtable(sheet; header = true)
+999-element Vector{NamedTuple{(:symbol, :askPrice, ...), Tuple{String, Vararg{Float64, 4}}}}:
+ (symbol = &quot;ETHBTC&quot;, askPrice = 0.0529, askQty = 8.1061, bidPrice = 0.0529, bidQty = 50.565)
+ (symbol = &quot;LTCBTC&quot;, askPrice = 0.0010, askQty = 308.76, bidPrice = 0.0010, bidQty = 1433.7)
+ (symbol = &quot;BNBBTC&quot;, askPrice = 0.0086, askQty = 1.036, bidPrice = 0.00863, bidQty = 8.1390)
+ (symbol = &quot;NEOBTC&quot;, askPrice = 0.0001, askQty = 6.52, bidPrice = 0.000160, bidQty = 318.15)
+ ⋮
+ (symbol = &quot;ZKUSDC&quot;, askPrice = 0.1386, askQty = 3612.7, bidPrice = 0.138, bidQty = 11976.9)
+ (symbol = &quot;ZROUSDC&quot;, askPrice = 2.925, askQty = 437.83, bidPrice = 2.922, bidQty = 353.730)</code></pre><p>Table slices can be obtained in the same way as with a regular matrix, which can then also be converted to a column representation:</p><pre><code class="language-julia-repl hljs">using OpenXL
 
 julia&gt; xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 1-element XLWorkbook:
@@ -91,4 +94,4 @@ julia&gt; DataFrame(xl_rowtable(xlsx[&quot;Ticker24h&quot;], header = true))
  2679 │ WIFBRL     9.59          15.4      8.81        1595.9         4.5     10.05        11.96        8.72        8.84       2024-07-04T08:24:48.124        2024-07-05T08:24:48.124            10.01         -1.21                 -12.04   87665.9           111.0   9085.4              9.6491
  2680 │ ZKUSDC     0.1386      3612.7      0.138      11976.9       812.0      0.1628       0.1679      0.1275      0.1387     2024-07-04T08:24:45.328        2024-07-05T08:24:45.328             0.1602       -0.0241               -14.803      2.08508e5    1572.0      1.38955e6        0.150054
  2681 │ ZROUSDC    2.925        437.83     2.922        353.73       16.08     3.24         3.27        2.735       2.922      2024-07-04T08:24:44.710000128  2024-07-05T08:24:44.710000128       3.221        -0.318                 -9.815      1.09635e6    7957.0      3.56187e5        3.07801
-                                                                                                                                                                                                                                                                                      2673 rows omitted</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="pages/api_reference/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Wednesday 10 July 2024 10:00">Wednesday 10 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+                                                                                                                                                                                                                                                                                      2673 rows omitted</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="pages/api_reference/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.5.0 on <span class="colophon-date" title="Wednesday 10 July 2024 10:02">Wednesday 10 July 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
