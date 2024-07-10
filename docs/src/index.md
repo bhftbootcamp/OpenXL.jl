@@ -50,27 +50,27 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 1-element XLWorkbook:
  2682x19 XLSheet("Ticker24h")
 
-julia> sheet = xlsx["Ticker24h"]["A1:E1000"]
-1000x5 XLTable
- Sheet │ A         B          C        D          E         
-───────┼───────────────────────────────────────────────────
-     1 │ symbol    askPrice   askQty   bidPrice   bidQty    
-     2 │ ETHBTC    0.05296    8.1061   0.05295    50.5655   
-     3 │ LTCBTC    0.001072   308.762  0.001071   1433.702  
-     4 │ BNBBTC    0.008633   1.036    0.008632   8.139     
-     ⋮ │  ⋮         ⋮           ⋮        ⋮          ⋮           
-   999 │ KSMBUSD   0.0        0.0      0.0        0.0       
-  1000 │ KSMUSDT   19.08      20.114   19.07      1.027 
+julia> sheet = xlsx["Ticker24h"]["A1:E"]
+2682x5 XLTable
+ Sheet │ A        B         C        D         E        
+───────┼────────────────────────────────────────────────
+     1 │ symbol   askPrice  askQty   bidPrice  bidQty 
+     2 │ ETHBTC   0.05296   8.1061   0.05295   50.5655
+     3 │ LTCBTC   0.00107   308.762  0.00107   1433.70
+     4 │ BNBBTC   0.00863   1.036    0.00863   8.139  
+     ⋮ │  ⋮        ⋮          ⋮        ⋮         ⋮        
+  2681 │ ZKUSDC   0.1386    3612.7   0.138     11976.9
+  2682 │ ZROUSDC  2.925     437.83   2.922     353.730
 
 julia> xl_rowtable(sheet; header = true)
-999-element Vector{NamedTuple{(:symbol, :askPrice, ...), Tuple{String, Vararg{Float64, 4}}}}:
+2681-element Vector{NamedTuple{(:symbol, :askPrice, ...), Tuple{String, Vararg{Float64, 4}}}}:
  (symbol = "ETHBTC", askPrice = 0.0529, askQty = 8.1061, bidPrice = 0.0529, bidQty = 50.565)
  (symbol = "LTCBTC", askPrice = 0.0010, askQty = 308.76, bidPrice = 0.0010, bidQty = 1433.7)
  (symbol = "BNBBTC", askPrice = 0.0086, askQty = 1.036, bidPrice = 0.00863, bidQty = 8.1390)
  (symbol = "NEOBTC", askPrice = 0.0001, askQty = 6.52, bidPrice = 0.000160, bidQty = 318.15)
  ⋮
- (symbol = "KSMBUSD", askPrice = 0.0, askQty = 0.0, bidPrice = 0.0, bidQty = 0.0)
- (symbol = "KSMUSDT", askPrice = 19.08, askQty = 20.114, bidPrice = 19.07, bidQty = 1.027)
+ (symbol = "ZKUSDC", askPrice = 0.1386, askQty = 3612.7, bidPrice = 0.138, bidQty = 11976.9)
+ (symbol = "ZROUSDC", askPrice = 2.925, askQty = 437.83, bidPrice = 2.922, bidQty = 353.730)
 ```
 
 Table slices can be obtained in the same way as with a regular matrix, which can then also be converted to a column representation:
