@@ -63,7 +63,7 @@ julia> sheet = xlsx["Ticker24h"]["A1:E"]
   2682 │ ZROUSDC  2.925     437.83   2.922     353.730
 
 julia> xl_rowtable(sheet; header = true)
-999-element Vector{NamedTuple{(:symbol, :askPrice, ...), Tuple{String, Vararg{Float64, 4}}}}:
+2681-element Vector{NamedTuple{(:symbol, :askPrice, ...), Tuple{String, Vararg{Float64, 4}}}}:
  (symbol = "ETHBTC", askPrice = 0.0529, askQty = 8.1061, bidPrice = 0.0529, bidQty = 50.565)
  (symbol = "LTCBTC", askPrice = 0.0010, askQty = 308.76, bidPrice = 0.0010, bidQty = 1433.7)
  (symbol = "BNBBTC", askPrice = 0.0086, askQty = 1.036, bidPrice = 0.00863, bidQty = 8.1390)
