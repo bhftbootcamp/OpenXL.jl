@@ -28,6 +28,13 @@ function gen_column_keys(n::Int, alt_keys::Dict{String,String})
     end
 end
 
+function gen_column_keys(n::Int, alt_keys::AbstractVector{String})
+    return map(1:n) do i
+        key = index_to_column_letter(i)
+        return Symbol(get(alt_keys, i, key))
+    end
+end
+
 struct CellRange
     column::Maybe{Int}
     row::Maybe{Int}

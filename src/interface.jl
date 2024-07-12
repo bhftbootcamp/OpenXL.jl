@@ -240,9 +240,7 @@ function xl_rowtable(
     header::Bool = false,
 )
     t_data = header ? view(x, 2:xl_nrow(x), :) : x
-    column_keys = if alt_keys isa Vector
-        Symbol.(alt_keys)
-    elseif header
+    column_keys = if header && alt_keys isa Dict
         headers = x[1, :]
         replace!(headers, alt_keys...)
         Symbol.(headers)
@@ -294,9 +292,7 @@ function xl_columntable(
     header::Bool = false,
 )
     t_data = header ? view(x, 2:xl_nrow(x), :) : x
-    column_keys = if alt_keys isa Vector
-        Symbol.(alt_keys)
-    elseif header
+    column_keys = if header && alt_keys isa Dict
         headers = x[1, :]
         replace!(headers, alt_keys...)
         Symbol.(headers)
