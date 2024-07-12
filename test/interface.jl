@@ -139,6 +139,31 @@ end
             (alt_text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
+        @test xl_rowtable(sheet; alt_keys = ["alt_text", "regular_text"]) == [
+            (alt_text = "text", regular_text = "regular_text"),
+            (alt_text = "integer", regular_text = 102.0),
+            (alt_text = "float", regular_text = 102.2),
+            (alt_text = "date", regular_text = 30422.0),
+            (alt_text = "hour", regular_text = 1.8227199074074074),
+            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "float cient", regular_text = -220.0),
+            (alt_text = "integer neg", regular_text = -2000.0),
+            (alt_text = "bigint", regular_text = 1.0e14),
+            (alt_text = "bigint neg", regular_text = "-100000000000000"),
+        ]
+
+        @test xl_rowtable(sheet; header = true, alt_keys = ["alt_text", "regular_text"]) == [
+            (alt_text = "integer", regular_text = 102.0),
+            (alt_text = "float", regular_text = 102.2),
+            (alt_text = "date", regular_text = 30422.0),
+            (alt_text = "hour", regular_text = 1.8227199074074074),
+            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "float cient", regular_text = -220.0),
+            (alt_text = "integer neg", regular_text = -2000.0),
+            (alt_text = "bigint", regular_text = 1.0e14),
+            (alt_text = "bigint neg", regular_text = "-100000000000000"),
+        ]
+
         @test xl_columntable(sheet) == (
             A = Any[
                 "text",
@@ -192,6 +217,58 @@ end
         )
 
         @test xl_columntable(sheet; header = true, alt_keys = Dict("text" => "alt_text")) == (
+            alt_text = Any[
+                "integer",
+                "float",
+                "date",
+                "hour",
+                "datetime",
+                "float cient",
+                "integer neg",
+                "bigint",
+                "bigint neg",
+            ],
+            regular_text = Any[
+                102.0,
+                102.2,
+                30422.0,
+                1.8227199074074074,
+                43206.805451388886,
+                -220.0,
+                -2000.0,
+                1.0e14,
+                "-100000000000000",
+            ],
+        )
+
+        @test xl_columntable(sheet; alt_keys = ["alt_text", "regular_text"]) == (
+            alt_text = Any[
+                "text",
+                "integer",
+                "float",
+                "date",
+                "hour",
+                "datetime",
+                "float cient",
+                "integer neg",
+                "bigint",
+                "bigint neg",
+            ],
+            regular_text = Any[
+                "regular_text",
+                102.0,
+                102.2,
+                30422.0,
+                1.8227199074074074,
+                43206.805451388886,
+                -220.0,
+                -2000.0,
+                1.0e14,
+                "-100000000000000",
+            ],
+        )
+
+        @test xl_columntable(sheet; header = true, alt_keys = ["alt_text", "regular_text"]) == (
             alt_text = Any[
                 "integer",
                 "float",
@@ -317,6 +394,31 @@ end
             (alt_text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
+        @test xl_rowtable(table; alt_keys = ["alt_text", "regular_text"]) == [
+            (alt_text = "text", regular_text = "regular_text"),
+            (alt_text = "integer", regular_text = 102.0),
+            (alt_text = "float", regular_text = 102.2),
+            (alt_text = "date", regular_text = 30422.0),
+            (alt_text = "hour", regular_text = 1.8227199074074074),
+            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "float cient", regular_text = -220.0),
+            (alt_text = "integer neg", regular_text = -2000.0),
+            (alt_text = "bigint", regular_text = 1.0e14),
+            (alt_text = "bigint neg", regular_text = "-100000000000000"),
+        ]
+
+        @test xl_rowtable(table; header = true, alt_keys = ["alt_text", "regular_text"]) == [
+            (alt_text = "integer", regular_text = 102.0),
+            (alt_text = "float", regular_text = 102.2),
+            (alt_text = "date", regular_text = 30422.0),
+            (alt_text = "hour", regular_text = 1.8227199074074074),
+            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "float cient", regular_text = -220.0),
+            (alt_text = "integer neg", regular_text = -2000.0),
+            (alt_text = "bigint", regular_text = 1.0e14),
+            (alt_text = "bigint neg", regular_text = "-100000000000000"),
+        ]
+
         @test xl_columntable(table) == (
             A = Any[
                 "text",
@@ -370,6 +472,58 @@ end
         )
 
         @test xl_columntable(table; header = true, alt_keys = Dict("text" => "alt_text")) == (
+            alt_text = Any[
+                "integer",
+                "float",
+                "date",
+                "hour",
+                "datetime",
+                "float cient",
+                "integer neg",
+                "bigint",
+                "bigint neg",
+            ],
+            regular_text = Any[
+                102.0,
+                102.2,
+                30422.0,
+                1.8227199074074074,
+                43206.805451388886,
+                -220.0,
+                -2000.0,
+                1.0e14,
+                "-100000000000000",
+            ],
+        )
+
+        @test xl_columntable(table; alt_keys = ["alt_text", "regular_text"]) == (
+            alt_text = Any[
+                "text",
+                "integer",
+                "float",
+                "date",
+                "hour",
+                "datetime",
+                "float cient",
+                "integer neg",
+                "bigint",
+                "bigint neg",
+            ],
+            regular_text = Any[
+                "regular_text",
+                102.0,
+                102.2,
+                30422.0,
+                1.8227199074074074,
+                43206.805451388886,
+                -220.0,
+                -2000.0,
+                1.0e14,
+                "-100000000000000",
+            ],
+        )
+
+        @test xl_columntable(table; header = true, alt_keys = ["alt_text", "regular_text"]) == (
             alt_text = Any[
                 "integer",
                 "float",

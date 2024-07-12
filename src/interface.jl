@@ -198,7 +198,7 @@ end
 Converts sheet rows to a `Vector` of `NamedTuples`.
 
 ## Keyword arguments
-- `alt_keys::Dict{String,String}`: Alternative custom column headers.
+- `alt_keys::Union{Dict{String,String},Vector{String}}`: Alternative custom column headers.
 - `header::Bool = false`: Use first row elements as column headers.
 
 ## Examples
@@ -207,6 +207,7 @@ Converts sheet rows to a `Vector` of `NamedTuples`.
 julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
+
 
 julia> xl_rowtable(xlsx["Stock"]["A1:C30"], header = true)
 29-element Vector{NamedTuple{(:name, :price, :h24)}}:
@@ -217,19 +218,36 @@ julia> xl_rowtable(xlsx["Stock"]["A1:C30"], header = true)
  ⋮
  (name = "LLY", price = 807.43, h24 = -0.0024)
  (name = "AVGO", price = 1407.84, h24 = 0.0036)
+
+julia> xl_rowtable(
+           xlsx["Stock"]["A1:C30"],
+           header = true,
+           alt_keys = ["Name", "Price", "H24"],
+       )
+29-element Vector{NamedTuple{(:Name, :Price, :H24)}}:
+ (Name = "MSFT", Price = "430.16", H24 = "0.0007")
+ (Name = "AAPL", Price = "189.98", H24 = "-0.0005")
+ (Name = "NVDA", Price = "1064.69", H24 = "0.0045")
+ (Name = "GOOG", Price = "176.33", H24 = "-0.0006")
+ ⋮
+ (Name = "LLY", Price = 807.43, H24 = -0.0024)
+ (Name = "AVGO", Price = 1407.84, H24 = 0.0036)
 ```
 """
 function xl_rowtable(
     x::AbstractXLSheet;
-    alt_keys::Dict{String,String} = Dict{String,String}(),
+    alt_keys::Union{Dict{String,String},AbstractVector{String}} = Dict{String,String}(),
     header::Bool = false,
 )
-    column_keys, t_data = if header
+    t_data = header ? view(x, 2:xl_nrow(x), :) : x
+    column_keys = if alt_keys isa Vector
+        Symbol.(alt_keys)
+    elseif header
         headers = x[1, :]
         replace!(headers, alt_keys...)
-        Symbol.(headers), view(x, 2:xl_nrow(x), :)
+        Symbol.(headers)
     else
-        gen_column_keys(xl_ncol(x), alt_keys), x
+        gen_column_keys(xl_ncol(x), alt_keys)
     end
 
     return map(eachrow(t_data)) do row
@@ -243,7 +261,7 @@ end
 Converts sheet columns to a `Vector` of `NamedTuples`.
 
 ## Keyword arguments
-- `alt_keys::Dict{String,String}`: Alternative custom column headers.
+- `alt_keys::Union{Dict{String,String},Vector{String}}`: Alternative custom column headers.
 - `header::Bool = false`: Use first row elements as column headers.
 
 ## Examples
@@ -252,6 +270,13 @@ Converts sheet columns to a `Vector` of `NamedTuples`.
 julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
+
+julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys = ["Name", "Price", "H24"])
+(
+    Name = Any["MSFT", "AAPL"  …  "JNJ", "ORCL"]
+    Price = Any[430.16, 189.98  …  146.97, 122.91],
+    H24 = Any[0.0007, -0.0005  …  0.0007, -0.0003],
+)
 
 julia> alt_keys = Dict("A" => "Name", "B" => "Price", "C" => "H24");
 
@@ -265,18 +290,19 @@ julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys)
 """
 function xl_columntable(
     x::AbstractXLSheet;
-    alt_keys::Dict{String,String} = Dict{String,String}(),
+    alt_keys::Union{Dict{String,String},AbstractVector{String}} = Dict{String,String}(),
     header::Bool = false,
 )
-    column_keys, t_data = if header
+    t_data = header ? view(x, 2:xl_nrow(x), :) : x
+    column_keys = if alt_keys isa Vector
+        Symbol.(alt_keys)
+    elseif header
         headers = x[1, :]
         replace!(headers, alt_keys...)
-        Symbol.(headers), view(x, 2:xl_nrow(x), :)
+        Symbol.(headers)
     else
-        gen_column_keys(xl_ncol(x), alt_keys), x
+        gen_column_keys(xl_ncol(x), alt_keys)
     end
-
-    replace!(column_keys, alt_keys...)
 
     return NamedTuple{Tuple(column_keys)}(eachcol(t_data))
 end
