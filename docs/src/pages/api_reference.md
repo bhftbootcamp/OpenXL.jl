@@ -2,6 +2,7 @@
 
 ```@docs
 xl_parse
+xl_open
 ```
 
 ## Types
@@ -18,5 +19,13 @@ XLTable
 ```@docs
 xl_rowtable
 xl_columntable
-xl_print_sheet
+eachrow
+xl_print
+```
+
+## Utils
+
+```@docs
+OpenXL.index_to_column_letter
+OpenXL.column_letter_to_index
 ```

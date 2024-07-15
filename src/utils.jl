@@ -1,31 +1,56 @@
-# utils
+# xl_utils
 
-#__ Indexing
+"""
+    column_letter_to_index(letter::AbstractString) -> Int
 
-function column_letter_to_index(key::AbstractString)
-    i = 0
-    for c in key
-        i = (c - 'A' + 1) + i * 26
+Converts an Excel column letter ("A", "B", ..., "Z", "AA", etc.) to its corresponding numerical index.
+
+## Examples
+```julia
+julia> column_letter_to_index("A")
+1
+
+julia> column_letter_to_index("Z")
+26
+
+julia> column_letter_to_index("AA")
+27
+```
+"""
+function column_letter_to_index(letter::AbstractString)
+    idx = 0
+    for c in letter
+        idx = (c - 'A' + 1) + idx * 26
     end
-    return i
+    return idx
 end
 
-function index_to_column_letter(i::Int)
-    i, r1 = divrem(i - 1, 26)
-    iszero(i) && return string(Char(r1 + 65))
+"""
+    index_to_column_letter(inx::Int) -> String
 
-    i, r2 = divrem(i - 1, 26)
-    iszero(i) && return string(Char(r2 + 65), Char(r1 + 65))
+Converts a numerical index into its corresponding Excel column letter ("A", "B", ..., "Z", "AA", etc.).
 
-    _, r3 = divrem(i - 1, 26)
-    return string(Char(r3 + 65), Char(r2 + 65), Char(r1 + 65))
-end
+## Examples
+```julia
+julia> index_to_column_letter(1)
+"A"
 
-function gen_column_keys(n::Int, alt_keys::Dict{String,String})
-    return map(1:n) do i
-        key = index_to_column_letter(i)
-        return Symbol(get(alt_keys, key, key))
-    end
+julia> index_to_column_letter(26)
+"Z"
+
+julia> index_to_column_letter(27)
+"AA"
+```
+"""
+function index_to_column_letter(inx::Int)
+    inx, rem1 = divrem(inx - 1, 26)
+    iszero(inx) && return string(Char(rem1 + 65))
+
+    inx, rem2 = divrem(inx - 1, 26)
+    iszero(inx) && return string(Char(rem2 + 65), Char(rem1 + 65))
+
+    _, rem3 = divrem(inx - 1, 26)
+    return string(Char(rem3 + 65), Char(rem2 + 65), Char(rem1 + 65))
 end
 
 struct CellRange
@@ -36,17 +61,16 @@ end
 function parse_cell_addr(addr::AbstractString)
     match_result = match(r"^([A-Z]+)([1-9]\d*)?$", addr)
 
-    if isnothing(match_result)
-        throw(
-            XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."),
-        )
-    end
+    isnothing(match_result) && throw(
+        XLError("Invalid cell address format. Expected 'A1', 'AB12', etc., got $addr."),
+    )
 
     column_letter, row_number = match_result
-    column_index = column_letter_to_index(column_letter)
-    row_index = isnothing(row_number) ? nothing : parse(Int64, row_number)
 
-    return CellRange(column_index, row_index)
+    return CellRange(
+        column_letter_to_index(column_letter),
+        isnothing(row_number) ? nothing : parse(Int64, row_number),
+    )
 end
 
 function parse_cell_range(addr::AbstractString)
@@ -54,15 +78,11 @@ function parse_cell_range(addr::AbstractString)
         throw(XLError("Empty cell range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc."))
     end
 
-    range_parts = split(addr, ':', limit = 2)
+    range_parts = split(addr, ':'; limit = 2)
 
-    if any(isempty, range_parts)
-        throw(
-            XLError(
-                "Incomplete address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr.",
-            ),
-        )
-    end
+    any(isempty, range_parts) && throw(
+        XLError("Incomplete address range. Expected 'A', 'A:B', 'A1:B2', 'AB12:CD34', etc., got $addr.")
+    )
 
     cell_ranges = parse_cell_addr.(range_parts)
 
