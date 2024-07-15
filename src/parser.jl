@@ -1,30 +1,27 @@
-# parser
+# xl_parser
 
-function unzip_xl(data::AbstractVector{UInt8})
-    workbook = Dict{String,Any}()
-    zip_reader = ZipFile.Reader(IOBuffer(data))
-
+function unzip_xl(buff::IOBuffer)
+    outs = Dict{String,Any}()
+    zip_reader = ZipFile.Reader(buff)
     for file_entry in zip_reader.files
         startswith(file_entry.name, "xl/worksheets/_rels/") && continue
         path_parts = splitpath(file_entry.name)
-        xml_name = path_parts[end]
-        end_node = workbook
+        end_node = outs
         for part in path_parts[1:end-1]
             end_node = get!(end_node, part, Dict{String,Any}())
         end
         file = read(file_entry)
         if !isempty(file)
-            end_node[xml_name] = parse_xml(file)
+            end_node[path_parts[end]] = parse_xml(file)
         end
     end
-
-    return workbook
+    close(zip_reader)
+    return outs
 end
 
-function deser_xl(::Type{XL}, data::AbstractVector{UInt8})
-    return Serde.to_deser(XL, unzip_xl(data)["xl"])
+function deser_xl(::Type{XL}, buff::IOBuffer)
+    return Serde.to_deser(XL, unzip_xl(buff)["xl"])
 end
-
 
 """
     xl_parse(x::AbstractString) -> XLWorkbook
@@ -47,9 +44,32 @@ julia> xl_parse(raw_xlsx)
 ```
 """
 function xl_parse(x::Vector{UInt8})
-    return XLWorkbook(deser_xl(XL, x))
+    buff = IOBuffer(x)
+    try
+        XLWorkbook(deser_xl(XL, buff))
+    finally
+        close(buff)
+    end
 end
 
 function xl_parse(x::AbstractString)
     return xl_parse(collect(UInt8, x))
+end
+
+"""
+    xl_open(file::AbstractString) -> XLWorkbook
+
+Read the specified XL `file` and parse it into [`XLWorkbook`](@ref).
+"""
+function xl_open(file::AbstractString)
+    return xl_parse(read(file))
+end
+
+"""
+    xl_open(io::IO) -> XLWorkbook
+
+Read data from the specified `IO` object and parse it into an [`XLWorkbook`](@ref).
+"""
+function xl_open(io::IO)
+    return xl_parse(read(io))
 end

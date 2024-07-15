@@ -114,7 +114,7 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 1-element XLWorkbook:
  2682x19 XLSheet("Ticker24h")
 
-julia> DataFrame(xl_rowtable(xlsx["Ticker24h"], header = true))
+julia> DataFrame(eachrow(xlsx["Ticker24h"], header = true))
 2681×19 DataFrame
   Row │ symbol    askPrice    askQty      bidPrice    bidQty      lastQty    openPrice    highPrice    lowPrice    lastPrice   openTime                       closeTime                      prevClosePrice  priceChange  priceChangePercent  quoteVolume    count     volume         weightedAvgPrice 
       │ String    Float64     Float64     Float64     Float64     Float64    Float64      Float64      Float64     Float64     String                         String                         Float64         Float64      Float64             Float64        Float64   Float64        Float64          
