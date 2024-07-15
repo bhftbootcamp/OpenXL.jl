@@ -1,4 +1,4 @@
-# print
+# xl_print
 
 function compact_length(str::AbstractString; max_len::Int)
     return min(length(str), max_len)
@@ -23,7 +23,7 @@ function head_tail(x::AbstractVector, head::Int, tail::Int)
 end
 
 """
-    xl_print_sheet([io::IO], sheet::AbstractXLSheet; kw...)
+    xl_print([io::IO], sheet::AbstractXLSheet; kw...)
 
 Print a `sheet` as a table representation.
 
@@ -39,19 +39,19 @@ julia> xlsx = xl_parse(xl_sample_employee_xlsx())
 1-element XLWorkbook:
  1001x13 XLSheet("Employee")
 
-julia> xl_print_sheet(xlsx["Employee"]; header = true)
- Sheet │ eeid    full_name        job_title         ⋯  country        city       exit_date  
+julia> xl_print(xlsx["Employee"]; header = true)
+ Sheet │ eeid    full_name        job_title         ⋯  country        city       exit_date
 ───────┼───────────────────────────────────────────────────────────────────────────────────
-     2 │ E02387  Emily Davis      Sr. Manger        ⋯  United States  Seattle    44485.0    
-     3 │ E04105  Theodore Dinh    Technical Archi…  ⋯  China          Chongqing  nothing    
-     4 │ E02572  Luna Sanders     Director          ⋯  United States  Chicago    nothing    
-     5 │ E02832  Penelope Jordan  Computer System…  ⋯  United States  Chicago    nothing       
-     ⋮ │ ⋮       ⋮                ⋮                 ⋯  ⋮              ⋮          ⋮             
-  1000 │ E02521  Lily Nguyen      Sr. Analyst       ⋯  China          Chengdu    nothing    
-  1001 │ E03545  Sofia Cheng      Vice President    ⋯  United States  Miami      nothing 
+     2 │ E02387  Emily Davis      Sr. Manger        ⋯  United States  Seattle    44485.0
+     3 │ E04105  Theodore Dinh    Technical Archi…  ⋯  China          Chongqing  nothing
+     4 │ E02572  Luna Sanders     Director          ⋯  United States  Chicago    nothing
+     5 │ E02832  Penelope Jordan  Computer System…  ⋯  United States  Chicago    nothing
+     ⋮ │ ⋮       ⋮                ⋮                 ⋯  ⋮              ⋮          ⋮
+  1000 │ E02521  Lily Nguyen      Sr. Analyst       ⋯  China          Chengdu    nothing
+  1001 │ E03545  Sofia Cheng      Vice President    ⋯  United States  Miami      nothing
 ```
 """
-function xl_print_sheet(
+function xl_print(
     io::IO,
     sheet::AbstractXLSheet;
     title::AbstractString = "Sheet",
@@ -67,7 +67,7 @@ function xl_print_sheet(
     cols, row_start = if header
         view(sheet, 1, :), 2
     else
-        gen_column_keys(num_cols, Dict{String,String}()), 1
+        (index_to_column_letter.(1:num_cols), 1)
     end
     col_widths = map(enumerate(eachcol(sheet))) do (i, col)
         return max(
@@ -134,6 +134,8 @@ function xl_print_sheet(
     end
 end
 
-function xl_print_sheet(sheet::AbstractXLSheet; kw...)
-    return xl_print_sheet(stdout, sheet; kw...)
+function xl_print(sheet::AbstractXLSheet; kw...)
+    return xl_print(stdout, sheet; kw...)
 end
+
+xl_print(x...; kw...) = print(x...; kw...)

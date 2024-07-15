@@ -5,7 +5,7 @@ xlsx = xl_parse(read("xl_data/general_tables.xlsx"))
 @testset "Workbook interface" begin
     @testset "Case №1: Accessors" begin
         @test length(xlsx) == 13
-        @test xl_names(xlsx) == [
+        @test xl_sheetnames(xlsx) == [
             "general",
             "table3",
             "table4",
@@ -45,7 +45,7 @@ end
     @testset "Case №1: Accessors" begin
         @test xl_nrow(sheet) == 10
         @test xl_ncol(sheet) == 2
-        @test xl_name(sheet) == "general"
+        @test xl_sheetname(sheet) == "general"
     end
 
     @testset "Case №2: Indexing" begin

@@ -1,4 +1,4 @@
-# interface
+# xL_interface
 
 """
     AbstractXLSheet <: AbstractArray{Any,2}
@@ -6,8 +6,6 @@
 Abstract supertype for [`XLSheet`](@ref) and [`XLTable`](@ref).
 """
 abstract type AbstractXLSheet <: AbstractArray{Any,2} end
-
-#__XLTable
 
 """
     XLTable <: AbstractXLSheet
@@ -22,7 +20,7 @@ Supports the same table operations as `XLSheet`.
 - `xl_nrow(x::XLTable)`: Number of rows.
 - `xl_ncol(x::XLTable)`: Number of columns.
 
-See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print_sheet`](@ref).
+See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
 
 ## Examples
 ```julia-repl
@@ -55,7 +53,6 @@ xl_ncol(x::AbstractXLSheet) = size(x, 2)
 
 Base.:(==)(x::XLTable, y::XLTable) = x.data == y.data
 Base.isequal(x::XLTable, y::XLTable) = isequal(x.data, y.data)
-
 Base.getindex(x::XLTable, i::Int) = x.data[i]
 
 function Base.getindex(x::XLTable, inds::Vararg{Any,2})
@@ -104,20 +101,18 @@ Base.convert(::Type{XLTable}, x::AbstractMatrix) = XLTable(x)
 Base.convert(::Type{Matrix}, x::XLTable) = x.data
 
 function Base.show(io::IO, x::XLTable; kw...)
-    xl_print_sheet(io, x; kw...)
+    xl_print(io, x; kw...)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::XLTable; kw...)
     num_rows, num_cols = size(x)
     print(io, num_rows, "x", num_cols, " XLTable\n")
-    xl_print_sheet(io, x; kw...)
+    xl_print(io, x; kw...)
 end
 
 function Base.print(io::IO, x::XLTable; kw...)
-    xl_print_sheet(io, x; compact = false, kw...)
+    xl_print(io, x; compact = false, kw...)
 end
-
-#__ XLSheet
 
 """
     XLSheet <: AbstractXLSheet
@@ -132,11 +127,11 @@ The sheet slice will be converted into a separate [`XLTable`](@ref).
 - `table::XLTable`: Table representation.
 
 ## Accessors
-- `xl_name(x::XLSheet)`: Sheet name.
+- `xl_sheetname(x::XLSheet)`: Sheet name.
 - `xl_nrow(x::XLTable)`: Number of rows.
 - `xl_ncol(x::XLTable)`: Number of columns.
 
-See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print_sheet`](@ref).
+See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
 
 ## Examples
 
@@ -164,8 +159,6 @@ struct XLSheet <: AbstractXLSheet
     table::XLTable
 end
 
-xl_name(x::XLSheet) = x.name
-
 Base.size(x::XLSheet) = size(x.table)
 Base.size(x::XLSheet, dim) = size(x.table, dim)
 
@@ -174,6 +167,8 @@ Base.isequal(x::XLSheet, y::XLSheet) = isequal(x.table, y.table)
 
 Base.getindex(x::XLSheet, inds::Any...) = x.table[inds...]
 Base.setindex!(x::XLSheet, value, inds...) = setindex!(x.table, value, inds...)
+
+xl_sheetname(x::XLSheet) = x.name
 
 function Base.show(io::IO, x::XLSheet)
     num_rows, num_cols = size(x)
@@ -193,119 +188,6 @@ function Base.print(io::IO, x::XLSheet; kw...)
 end
 
 """
-    xl_rowtable(sheet::AbstractXLSheet; kw...) -> Vector{NamedTuple}
-
-Converts sheet rows to a `Vector` of `NamedTuples`.
-
-## Keyword arguments
-- `alt_keys::Union{Dict{String,String},Vector{String}}`: Alternative custom column headers.
-- `header::Bool = false`: Use first row elements as column headers.
-
-## Examples
-
-```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
-1-element XLWorkbook:
- 41x6 XLSheet("Stock")
-
-
-julia> xl_rowtable(xlsx["Stock"]["A1:C30"], header = true)
-29-element Vector{NamedTuple{(:name, :price, :h24)}}:
- (name = "MSFT", price = "430.16", h24 = "0.0007")
- (name = "AAPL", price = "189.98", h24 = "-0.0005")
- (name = "NVDA", price = "1064.69", h24 = "0.0045")
- (name = "GOOG", price = "176.33", h24 = "-0.0006")
- ⋮
- (name = "LLY", price = 807.43, h24 = -0.0024)
- (name = "AVGO", price = 1407.84, h24 = 0.0036)
-
-julia> xl_rowtable(
-           xlsx["Stock"]["A1:C30"],
-           header = true,
-           alt_keys = ["Name", "Price", "H24"],
-       )
-29-element Vector{NamedTuple{(:Name, :Price, :H24)}}:
- (Name = "MSFT", Price = "430.16", H24 = "0.0007")
- (Name = "AAPL", Price = "189.98", H24 = "-0.0005")
- (Name = "NVDA", Price = "1064.69", H24 = "0.0045")
- (Name = "GOOG", Price = "176.33", H24 = "-0.0006")
- ⋮
- (Name = "LLY", Price = 807.43, H24 = -0.0024)
- (Name = "AVGO", Price = 1407.84, H24 = 0.0036)
-```
-"""
-function xl_rowtable(
-    x::AbstractXLSheet;
-    alt_keys::Union{Dict{String,String},AbstractVector{String}} = Dict{String,String}(),
-    header::Bool = false,
-)
-    t_data = header ? view(x, 2:xl_nrow(x), :) : x
-    column_keys = if header && alt_keys isa Dict
-        headers = x[1, :]
-        replace!(headers, alt_keys...)
-        Symbol.(headers)
-    else
-        gen_column_keys(xl_ncol(x), alt_keys)
-    end
-
-    return map(eachrow(t_data)) do row
-        return NamedTuple{Tuple(column_keys)}(row)
-    end
-end
-
-"""
-    xl_columntable(sheet::AbstractXLSheet; kw...) -> Vector{NamedTuple}
-
-Converts sheet columns to a `Vector` of `NamedTuples`.
-
-## Keyword arguments
-- `alt_keys::Union{Dict{String,String},Vector{String}}`: Alternative custom column headers.
-- `header::Bool = false`: Use first row elements as column headers.
-
-## Examples
-
-```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
-1-element XLWorkbook:
- 41x6 XLSheet("Stock")
-
-julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys = ["Name", "Price", "H24"])
-(
-    Name = Any["MSFT", "AAPL"  …  "JNJ", "ORCL"]
-    Price = Any[430.16, 189.98  …  146.97, 122.91],
-    H24 = Any[0.0007, -0.0005  …  0.0007, -0.0003],
-)
-
-julia> alt_keys = Dict("A" => "Name", "B" => "Price", "C" => "H24");
-
-julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys)
-(
-    Name = Any["MSFT", "AAPL"  …  "JNJ", "ORCL"]
-    Price = Any[430.16, 189.98  …  146.97, 122.91],
-    H24 = Any[0.0007, -0.0005  …  0.0007, -0.0003],
-)
-```
-"""
-function xl_columntable(
-    x::AbstractXLSheet;
-    alt_keys::Union{Dict{String,String},AbstractVector{String}} = Dict{String,String}(),
-    header::Bool = false,
-)
-    t_data = header ? view(x, 2:xl_nrow(x), :) : x
-    column_keys = if header && alt_keys isa Dict
-        headers = x[1, :]
-        replace!(headers, alt_keys...)
-        Symbol.(headers)
-    else
-        gen_column_keys(xl_ncol(x), alt_keys)
-    end
-
-    return NamedTuple{Tuple(column_keys)}(eachcol(t_data))
-end
-
-#__ XLWorkbook
-
-"""
     XLWorkbook <: AbstractVector{XLSheet}
 
 Represents an Excel workbook containing [`XLSheet`](@ref).
@@ -314,7 +196,7 @@ Represents an Excel workbook containing [`XLSheet`](@ref).
 - `sheets::Vector{XLSheet}`: Workbook sheets.
 
 ## Accessors
-- `xl_names(x::XLWorkbook)`: Workbook sheet names.
+- `xl_sheetnames(x::XLWorkbook)`: Workbook sheet names.
 
 See also: [`xl_parse`](@ref).
 """
@@ -331,21 +213,22 @@ struct XLWorkbook <: AbstractVector{XLSheet}
                     result[row.r, column_addr] = xl[cell]
                 end
             end
-            XLSheet(ws.name, ws.sheetId, result)
+            XLSheet(ws.name, ws.sheetId, XLTable(result))
         end
         return new(r)
     end
 end
 
-xl_names(x::XLWorkbook) = map(xl_name, x.sheets)
-
 Base.size(x::XLWorkbook) = size(x.sheets)
+
 Base.getindex(x::XLWorkbook) = x.sheets
 Base.getindex(x::XLWorkbook, i::Int) = x.sheets[i]
 
+xl_sheetnames(x::XLWorkbook) = map(xl_sheetname, x.sheets)
+
 function Base.getindex(x::XLWorkbook, k::AbstractString)
     sheets = x[]
-    i = findfirst(sheet -> xl_name(sheet) == k, sheets)
+    i = findfirst(sheet -> xl_sheetname(sheet) == k, sheets)
     i === nothing && throw(KeyError(k))
     return sheets[i]
 end

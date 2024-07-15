@@ -18,5 +18,5 @@ XLTable
 ```@docs
 xl_rowtable
 xl_columntable
-xl_print_sheet
+xl_print
 ```

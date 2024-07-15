@@ -1,11 +1,12 @@
 module OpenXL
 
 export xl_parse,
+    xl_open,
     xl_rowtable,
     xl_columntable,
-    xl_print_sheet,
-    xl_name,
-    xl_names,
+    xl_print,
+    xl_sheetname,
+    xl_sheetnames,
     xl_nrow,
     xl_ncol
 
@@ -29,8 +30,9 @@ const Maybe{T} = Union{Nothing,T}
 
 include("utils.jl")
 include("xml_structure.jl")
-include("interface.jl")
 include("parser.jl")
+include("interface.jl")
+include("table.jl")
 include("print.jl")
 include("sample_data.jl")
 
