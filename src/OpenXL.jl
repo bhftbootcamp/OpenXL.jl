@@ -10,7 +10,8 @@ export xl_parse,
     xl_nrow,
     xl_ncol
 
-export XLError,
+export AbstractXLSheet,
+    XLError,
     XLTable,
     XLSheet,
     XLWorkbook

@@ -1,6 +1,6 @@
 # xl_table
 
-struct XLSheetRowIter
+struct XLSheetRowIter{columns} <: AbstractVector{NamedTuple{columns}}
     sheet::AbstractXLSheet
     current_row::Int
     total_rows::Int
@@ -8,16 +8,18 @@ struct XLSheetRowIter
 end
 
 function XLSheetRowIter(x::AbstractXLSheet; header::Bool = false, alt_keys = nothing)
-    columns = header ? copy(x[1, :]) : index_to_column_letter.(1:xl_ncol(x))
+    headers = header ? copy(x[1, :]) : index_to_column_letter.(1:xl_ncol(x))
 
-    if isa(alt_keys, AbstractVector)
+    columns = if isa(alt_keys, AbstractVector)
         length(alt_keys) == xl_ncol(x) || error("Column header mismatch: expected $(xl_ncol(x)) headers, but received $(length(alt_keys)).")
-        columns = alt_keys
+        Symbol.(alt_keys)
     elseif isa(alt_keys, AbstractDict)
-        columns = replace(columns, alt_keys...)
+        Symbol.(replace(headers, alt_keys...))
+    else
+        Symbol.(headers)
     end
 
-    return XLSheetRowIter(x, header ? 2 : 1, xl_nrow(x), Symbol.(columns))
+    return XLSheetRowIter{Tuple(columns)}(x, header ? 2 : 1, xl_nrow(x), columns)
 end
 
 function Base.show(io::IO, x::XLSheetRowIter)
@@ -30,19 +32,20 @@ function Base.show(io::IO, ::MIME"text/plain", x::XLSheetRowIter)
     show(io, x.sheet.table)
 end
 
-function Base.iterate(iter::XLSheetRowIter, state::Int = iter.current_row)
+Base.length(x::XLSheetRowIter) = x.total_rows - x.current_row + 1
+Base.size(x::XLSheetRowIter) = (length(x),)
+
+function Base.eltype(::XLSheetRowIter{T}) where {T}
+    return NamedTuple{T}
+end
+
+function Base.iterate(iter::XLSheetRowIter{T}, state::Int = iter.current_row) where {T}
     state > iter.total_rows && return nothing
     rd = [iter.sheet[state, j] for j = 1:length(iter.columns)]
-    return (NamedTuple{Tuple(iter.columns)}(rd), state + 1)
+    return (NamedTuple{T}(rd), state + 1)
 end
 
-function Base.length(iter::XLSheetRowIter)
-    return iter.total_rows - iter.current_row + 1
-end
-
-function Base.eltype(iter::XLSheetRowIter)
-    return NamedTuple{Tuple(iter.columns)}
-end
+Base.getindex(x::XLSheetRowIter, i::Int) = first(iterate(x, i))
 
 """
     eachrow(x::AbstractXLSheet; kw...)
@@ -132,5 +135,5 @@ julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys)
 """
 function xl_columntable(x::AbstractXLSheet; kw...)
     iter = XLSheetRowIter(x; kw...)
-    return NamedTuple{Tuple(iter.columns)}(eachcol(x[iter.current_row:iter.total_rows, :]))
+    return eltype(iter)(eachcol(x[iter.current_row:iter.total_rows, :]))
 end
