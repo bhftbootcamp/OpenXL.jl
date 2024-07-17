@@ -35,14 +35,14 @@ end
 Base.length(x::XLSheetRowIter) = x.total_rows - x.current_row + 1
 Base.size(x::XLSheetRowIter) = (length(x),)
 
-function Base.eltype(::XLSheetRowIter{T}) where {T}
-    return NamedTuple{T}
+function Base.eltype(::XLSheetRowIter{names}) where {names}
+    return NamedTuple{names}
 end
 
-function Base.iterate(iter::XLSheetRowIter{T}, state::Int = iter.current_row) where {T}
+function Base.iterate(iter::XLSheetRowIter{names}, state::Int = iter.current_row) where {names}
     state > iter.total_rows && return nothing
     rd = [iter.sheet[state, j] for j = 1:length(iter.columns)]
-    return (NamedTuple{T}(rd), state + 1)
+    return (NamedTuple{names}(rd), state + 1)
 end
 
 Base.getindex(x::XLSheetRowIter, i::Int) = first(iterate(x, i))
