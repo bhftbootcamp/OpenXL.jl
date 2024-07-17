@@ -1,6 +1,6 @@
 # xl_table
 
-struct XLSheetRowIter{T} <: AbstractVector{NamedTuple{T}}
+struct XLSheetRowIter{names} <: AbstractVector{NamedTuple{names}}
     sheet::AbstractXLSheet
     current_row::Int
     total_rows::Int
