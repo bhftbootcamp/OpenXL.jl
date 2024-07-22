@@ -61,7 +61,7 @@ function xl_print(
 )
     isempty(sheet) && return nothing
     display_height, display_width = displaysize(io)
-    display_elements = display_height/2 - 4
+    display_elements = floor(Int64, display_height/2 - 4)
     num_rows, num_cols = size(sheet)
     title_width = max(length(title), ndigits(num_rows))
     cols, row_start = if header
@@ -73,7 +73,7 @@ function xl_print(
         return max(
             maximum(
                 cell -> compact_length(string(cell), max_len = max_len),
-                head_tail(col, 10, 6),
+                head_tail(col, display_elements, display_elements),
             ),
             length(string(cols[i])),
         )
@@ -114,7 +114,7 @@ function xl_print(
             end
             print(io, "\n")
             omitted_rows = true
-            row_idx = floor(Int64, num_rows - display_elements)
+            row_idx = num_rows - display_elements
         end
         print(io, " ", lpad(row_idx, title_width), " │ ")
         col_idx = 1
