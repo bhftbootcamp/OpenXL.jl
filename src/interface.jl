@@ -55,6 +55,9 @@ Base.:(==)(x::XLTable, y::XLTable) = x.data == y.data
 Base.isequal(x::XLTable, y::XLTable) = isequal(x.data, y.data)
 Base.getindex(x::XLTable, i::Int) = x.data[i]
 
+xl_sheetname(x::XLTable) = nothing
+xl_table(x::XLTable) = x
+
 function Base.getindex(x::XLTable, inds::Vararg{Any,2})
     data = x.data[inds...]
     return data isa Matrix ? XLTable(data) : data
@@ -169,6 +172,7 @@ Base.getindex(x::XLSheet, inds::Any...) = x.table[inds...]
 Base.setindex!(x::XLSheet, value, inds...) = setindex!(x.table, value, inds...)
 
 xl_sheetname(x::XLSheet) = x.name
+xl_table(x::XLSheet) = x.table
 
 function Base.show(io::IO, x::XLSheet)
     num_rows, num_cols = size(x)
@@ -178,13 +182,13 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::XLSheet)
     show(io, x)
     print(io, "\n")
-    show(io, x.table)
+    show(io, xl_table(x))
 end
 
 function Base.print(io::IO, x::XLSheet; kw...)
     show(io, x)
     print(io, "\n")
-    print(io, x.table; kw...)
+    print(io, xl_table(x); kw...)
 end
 
 """
