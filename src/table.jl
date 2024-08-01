@@ -29,7 +29,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::XLSheetRowIter)
     show(io, x)
     print(io, "\n")
-    show(io, x.sheet.table)
+    show(io, xl_table(x.sheet))
 end
 
 Base.length(x::XLSheetRowIter) = x.total_rows - x.current_row + 1
