@@ -1,6 +1,6 @@
 # xl_parser
 
-function is_forbidden_path(path::String)
+function is_ignore_path(path::String)
     return startswith(path, "xl/worksheets/_rels/") || startswith(path, "xl/media/")
 end
 
@@ -8,7 +8,7 @@ function unzip_xl(buff::IOBuffer)
     outs = Dict{String,Any}()
     zip_reader = ZipFile.Reader(buff)
     for file_entry in zip_reader.files
-        is_forbidden_path(file_entry.name) && continue
+        is_ignore_path(file_entry.name) && continue
         path_parts = splitpath(file_entry.name)
         end_node = outs
         for part in path_parts[1:end-1]
