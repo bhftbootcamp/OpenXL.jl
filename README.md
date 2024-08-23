@@ -57,7 +57,7 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
  2682x19 XLSheet("Ticker24h")
 
 julia> sheet = xlsx["Ticker24h"]["A1:E"]
-2682x5 XLTable
+2682x5 SubXLSheet("Ticker24h")
  Sheet │ A        B         C        D         E        
 ───────┼────────────────────────────────────────────────
      1 │ symbol   askPrice  askQty   bidPrice  bidQty 
@@ -89,7 +89,7 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
  2682x19 XLSheet("Ticker24h")
 
 julia> sheet = xlsx["Ticker24h"][2:500, 7:10]
-499x4 XLTable
+499x4 SubXLSheet("Ticker24h")
  Sheet │ A          B        C          D         
 ───────┼─────────────────────────────────────────
      1 │ 0.05296    8.1061   0.05295    50.5655   

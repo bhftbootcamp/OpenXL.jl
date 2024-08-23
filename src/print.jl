@@ -59,21 +59,23 @@ function xl_print(
     compact::Bool = true,
     max_len::Int = compact ? 16 : typemax(Int),
 )
-    isempty(sheet) && return nothing
+    table = xl_table(sheet)
+    isempty(table) && return nothing
     display_height, display_width = displaysize(io)
     display_elements = floor(Int64, display_height/2 - 4)
-    num_rows, num_cols = size(sheet)
+    num_rows, num_cols = size(table)
     title_width = max(length(title), ndigits(num_rows))
     cols, row_start = if header
-        view(sheet, 1, :), 2
+        view(table, 1, :), 2
     else
         (index_to_column_letter.(1:num_cols), 1)
     end
-    col_widths = map(enumerate(eachcol(sheet))) do (i, col)
+    col_widths = map(enumerate(eachcol(table))) do (i, col)
         return max(
             maximum(
                 cell -> compact_length(string(cell), max_len = max_len),
-                head_tail(col, display_elements, display_elements),
+                head_tail(col, display_elements, display_elements);
+                init = 0,
             ),
             length(string(cols[i])),
         )
@@ -125,7 +127,7 @@ function xl_print(
                 omitted = true
                 col_idx = max(5, num_cols - 3)
             end
-            value = compact_string(string(sheet[row_idx, col_idx]), max_len = max_len)
+            value = compact_string(string(table[row_idx, col_idx]), max_len = max_len)
             print(io, rpad(value, col_widths[col_idx]), "  ")
             col_idx += 1
         end
