@@ -3,119 +3,9 @@
 """
     AbstractXLSheet <: AbstractArray{Any,2}
 
-Abstract supertype for [`XLSheet`](@ref) and [`XLTable`](@ref).
+Abstract supertype for [`XLSheet`](@ref) and [`SubXLSheet`](@ref).
 """
 abstract type AbstractXLSheet <: AbstractArray{Any,2} end
-
-"""
-    XLTable <: AbstractXLSheet
-
-Table representation of the [`XLSheet`](@ref) object.
-Supports the same table operations as `XLSheet`.
-
-## Fields
-- `data::Matrix`: Table data.
-
-## Accessors
-- `xl_nrow(x::XLTable)`: Number of rows.
-- `xl_ncol(x::XLTable)`: Number of columns.
-
-See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
-
-## Examples
-```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
-1-element XLWorkbook:
- 41x6 XLSheet("Stock")
-
-julia> xlsx["Stock"]["A1:D25"]
-25x4 XLTable
- Sheet │ A      B         C        D
-───────┼───────────────────────────────────────
-     1 │ name   price     h24      volume
-     2 │ MSFT   430.16    0.0007   11855456
-     3 │ AAPL   189.98    -0.0005  36327000
-     4 │ NVDA   1064.69   0.0045   42948000
-     ⋮ │ ⋮      ⋮         ⋮        ⋮
-    24 │ NVDA   1064.69   0.0045   4.2948e7
-    25 │ GOOG   176.33    -0.0006  1.1404e7
-```
-"""
-struct XLTable <: AbstractXLSheet
-    data::Matrix
-end
-
-Base.size(x::XLTable) = size(x.data)
-Base.size(x::XLTable, dim) = size(x.data, dim)
-
-xl_nrow(x::AbstractXLSheet) = size(x, 1)
-xl_ncol(x::AbstractXLSheet) = size(x, 2)
-
-Base.:(==)(x::XLTable, y::XLTable) = x.data == y.data
-Base.isequal(x::XLTable, y::XLTable) = isequal(x.data, y.data)
-Base.getindex(x::XLTable, i::Int) = x.data[i]
-
-xl_sheetname(x::XLTable) = nothing
-xl_table(x::XLTable) = x
-
-function Base.getindex(x::XLTable, inds::Vararg{Any,2})
-    data = x.data[inds...]
-    return data isa Matrix ? XLTable(data) : data
-end
-
-function range_to_indices(x::XLTable, parts::NTuple{2,CellRange})
-    l_part, r_part = parts
-    num_row = xl_nrow(x)
-
-    return if all(isnothing, (r_part.row, r_part.column))
-        if isnothing(l_part.row)
-            (:), l_part.column
-        else
-            l_part.row, l_part.column
-        end
-    else
-        if isnothing(l_part.row) && isnothing(r_part.row)
-            (:), (l_part.column:r_part.column)
-        elseif isnothing(r_part.row)
-            (l_part.row:num_row), (l_part.column:r_part.column)
-        elseif isnothing(l_part.row)
-            (r_part.row:num_row), (l_part.column:r_part.column)
-        else
-            (l_part.row:r_part.row), (l_part.column:r_part.column)
-        end
-    end
-end
-
-function Base.getindex(x::XLTable, addr::AbstractString)
-    inds = range_to_indices(x, parse_cell_range(addr))
-    return getindex(x, inds...)
-end
-
-function Base.setindex!(x::XLTable, value::Any, addr::AbstractString)
-    inds = range_to_indices(x, parse_cell_range(addr))
-    return setindex!(x, value, inds...)
-end
-
-function Base.setindex!(x::XLTable, value::Any, inds...)
-    return setindex!(x.data, value, inds...)
-end
-
-Base.convert(::Type{XLTable}, x::AbstractMatrix) = XLTable(x)
-Base.convert(::Type{Matrix}, x::XLTable) = x.data
-
-function Base.show(io::IO, x::XLTable; kw...)
-    xl_print(io, x; kw...)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", x::XLTable; kw...)
-    num_rows, num_cols = size(x)
-    print(io, num_rows, "x", num_cols, " XLTable\n")
-    xl_print(io, x; kw...)
-end
-
-function Base.print(io::IO, x::XLTable; kw...)
-    xl_print(io, x; compact = false, kw...)
-end
 
 """
     XLSheet <: AbstractXLSheet
@@ -123,16 +13,16 @@ end
 Sheet of the [`XLWorkbook`](@ref).
 Supports indexing like a regular `Matrix`, as well as address indexing (e.g. `A`, `A1`, `AB3` or range `D:E`, `B1:C10`, etc.).
 
-The sheet slice will be converted into a separate [`XLTable`](@ref).
+The sheet slice will be converted into a [`SubXLSheet`](@ref).
 
 ## Fields
 - `name::String`: Sheet name.
-- `table::XLTable`: Table representation.
+- `table::Matrix`: Table representation.
 
 ## Accessors
 - `xl_sheetname(x::XLSheet)`: Sheet name.
-- `xl_nrow(x::XLTable)`: Number of rows.
-- `xl_ncol(x::XLTable)`: Number of columns.
+- `xl_nrow(x::XLSheet)`: Number of rows.
+- `xl_ncol(x::XLSheet)`: Number of columns.
 
 See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
 
@@ -159,36 +49,128 @@ julia> sheet = xlsx["Stock"]
 struct XLSheet <: AbstractXLSheet
     name::String
     id::Int64
-    table::XLTable
+    table::Matrix
 end
-
-Base.size(x::XLSheet) = size(x.table)
-Base.size(x::XLSheet, dim) = size(x.table, dim)
-
-Base.:(==)(x::XLSheet, y::XLSheet) = x.table == y.table
-Base.isequal(x::XLSheet, y::XLSheet) = isequal(x.table, y.table)
-
-Base.getindex(x::XLSheet, inds::Any...) = x.table[inds...]
-Base.setindex!(x::XLSheet, value, inds...) = setindex!(x.table, value, inds...)
 
 xl_sheetname(x::XLSheet) = x.name
 xl_table(x::XLSheet) = x.table
 
-function Base.show(io::IO, x::XLSheet)
+Base.size(x::AbstractXLSheet) = size(x.table)
+Base.size(x::AbstractXLSheet, dim) = size(x.table, dim)
+
+xl_nrow(x::AbstractXLSheet) = size(x, 1)
+xl_ncol(x::AbstractXLSheet) = size(x, 2)
+
+Base.:(==)(x::AbstractXLSheet, y::AbstractXLSheet) = x.table == y.table
+Base.isequal(x::AbstractXLSheet, y::AbstractXLSheet) = isequal(x.table, y.table)
+
+Base.convert(::Type{Matrix}, x::AbstractXLSheet) = xl_table(x)
+
+function Base.show(io::IO, x::T; kw...) where {T<:AbstractXLSheet}
     num_rows, num_cols = size(x)
-    print(io, num_rows, "x", num_cols, " XLSheet(\"", x.name, "\")")
+    print(io, num_rows, "x", num_cols, " $T(\"", xl_sheetname(x), "\")")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", x::XLSheet)
+function Base.show(io::IO, ::MIME"text/plain", x::AbstractXLSheet; kw...)
     show(io, x)
     print(io, "\n")
-    show(io, xl_table(x))
+    xl_print(io, x; kw...)
 end
 
-function Base.print(io::IO, x::XLSheet; kw...)
-    show(io, x)
-    print(io, "\n")
-    print(io, xl_table(x); kw...)
+function Base.print(io::IO, x::AbstractXLSheet; kw...)
+    xl_print(io, x; compact = false, kw...)
+end
+
+"""
+    SubXLSheet <: AbstractXLSheet
+
+Slice view of the [`XLSheet`](@ref) object.
+Supports the same operations as `XLSheet`.
+
+## Fields
+- `data::Matrix`: Table data.
+
+## Accessors
+- `parent(x::SubXLSheet)`: Parent sheet.
+- `xl_nrow(x::SubXLSheet)`: Number of rows.
+- `xl_ncol(x::SubXLSheet)`: Number of columns.
+
+See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
+
+## Examples
+```julia-repl
+julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+1-element XLWorkbook:
+ 41x6 XLSheet("Stock")
+
+julia> xlsx["Stock"]["A1:D25"]
+25x4 SubXLSheet("Stock")
+ Sheet │ A      B         C        D
+───────┼───────────────────────────────────────
+     1 │ name   price     h24      volume
+     2 │ MSFT   430.16    0.0007   11855456
+     3 │ AAPL   189.98    -0.0005  36327000
+     4 │ NVDA   1064.69   0.0045   42948000
+     ⋮ │ ⋮      ⋮         ⋮        ⋮
+    24 │ NVDA   1064.69   0.0045   4.2948e7
+    25 │ GOOG   176.33    -0.0006  1.1404e7
+```
+"""
+struct SubXLSheet <:AbstractXLSheet
+    parent::AbstractXLSheet
+    table::SubArray
+end
+
+Base.parent(x::SubXLSheet) = isa(x.parent, XLSheet) ? x.parent : parent(x)
+xl_sheetname(x::SubXLSheet) = xl_sheetname(parent(x))
+xl_table(x::SubXLSheet) = Matrix(x.table)
+
+function Base.getindex(x::AbstractXLSheet, inds::Vararg{Any,2})
+    slice = view(x.table, inds...)
+    return if ndims(slice) == 0
+        slice[]
+    elseif ndims(slice) == 1
+        slice
+    elseif ndims(slice) == 2
+        SubXLSheet(x, slice)
+    end
+end
+
+function Base.setindex!(x::AbstractXLSheet, value::Any, inds::Vararg{Any,2})
+    return setindex!(x.table, value, inds...)
+end
+
+function range_to_indices(x::AbstractXLSheet, parts::NTuple{2,CellRange})
+    l_part, r_part = parts
+    num_row = xl_nrow(x)
+
+    return if all(isnothing, (r_part.row, r_part.column))
+        if isnothing(l_part.row)
+            (:), l_part.column
+        else
+            l_part.row, l_part.column
+        end
+    else
+        if isnothing(l_part.row) && isnothing(r_part.row)
+            (:), (l_part.column:r_part.column)
+        elseif isnothing(r_part.row)
+            (l_part.row:num_row), (l_part.column:r_part.column)
+        elseif isnothing(l_part.row)
+            (r_part.row:num_row), (l_part.column:r_part.column)
+        else
+            (l_part.row:r_part.row), (l_part.column:r_part.column)
+        end
+    end
+end
+
+function Base.getindex(x::AbstractXLSheet, addr::AbstractString)
+    inds = range_to_indices(x, parse_cell_range(addr))
+    return getindex(x, inds...)
+end
+
+function Base.setindex!(x::AbstractXLSheet, value::Any, addr::AbstractString)
+    inds = range_to_indices(x, parse_cell_range(addr))
+    return setindex!(x, value, inds...)
 end
 
 """
@@ -217,7 +199,7 @@ struct XLWorkbook <: AbstractVector{XLSheet}
                     result[row.r, column_addr] = xl[cell]
                 end
             end
-            XLSheet(ws.name, ws.sheetId, XLTable(result))
+            XLSheet(ws.name, ws.sheetId, result)
         end
         return new(r)
     end

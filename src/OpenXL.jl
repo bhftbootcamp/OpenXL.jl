@@ -5,6 +5,7 @@ export xl_parse,
     xl_rowtable,
     xl_columntable,
     xl_print,
+    xl_table,
     xl_sheetname,
     xl_sheetnames,
     xl_nrow,
@@ -12,8 +13,8 @@ export xl_parse,
 
 export AbstractXLSheet,
     XLError,
-    XLTable,
     XLSheet,
+    SubXLSheet,
     XLWorkbook
 
 using Serde
