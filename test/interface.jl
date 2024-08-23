@@ -71,7 +71,7 @@ end
         @test sheet["A1"] == "text"
         @test sheet["B1"] == "regular_text"
 
-        @test sheet["A"] == [
+        @test sheet["A"] == hcat([
             "text",
             "integer",
             "float",
@@ -82,7 +82,7 @@ end
             "integer neg",
             "bigint",
             "bigint neg",
-        ]
+        ])
 
         @test xl_table(sheet["A8:B"]) ==
               ["integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
@@ -324,7 +324,7 @@ end
         @test sub_table["A1"] == "text"
         @test sub_table["B1"] == "regular_text"
 
-        @test sub_table["A"] == [
+        @test sub_table["A"] == hcat([
             "text",
             "integer",
             "float",
@@ -335,7 +335,7 @@ end
             "integer neg",
             "bigint",
             "bigint neg",
-        ]
+        ])
 
         @test sub_table["A8:B"] ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
