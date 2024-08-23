@@ -11,7 +11,7 @@ xl_open
 XLWorkbook
 OpenXL.AbstractXLSheet
 XLSheet
-XLTable
+SubXLSheet
 ```
 
 ## Methods
