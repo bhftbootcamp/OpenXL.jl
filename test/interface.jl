@@ -306,25 +306,25 @@ end
 end
 
 @testset "SubXLSheet interface" begin
-    slice = xlsx["general"][:, :]
+    sub_table = xlsx["general"][:, :]
 
     @testset "Case №1: Accessors" begin
-        @test xl_nrow(slice) == 10
-        @test xl_ncol(slice) == 2
+        @test xl_nrow(sub_table) == 10
+        @test xl_ncol(sub_table) == 2
     end
 
     @testset "Case №2: Indexing" begin
-        @test slice[1] == "text"
-        @test slice[2] == "integer"
+        @test sub_table[1] == "text"
+        @test sub_table[2] == "integer"
 
-        @test slice[1, 1] == "text"
-        @test slice[1, 2] == "regular_text"
-        @test slice[1, :] == ["text", "regular_text"]
+        @test sub_table[1, 1] == "text"
+        @test sub_table[1, 2] == "regular_text"
+        @test sub_table[1, :] == ["text", "regular_text"]
 
-        @test slice["A1"] == "text"
-        @test slice["B1"] == "regular_text"
+        @test sub_table["A1"] == "text"
+        @test sub_table["B1"] == "regular_text"
 
-        @test slice["A"] == [
+        @test sub_table["A"] == [
             "text",
             "integer",
             "float",
@@ -337,41 +337,41 @@ end
             "bigint neg",
         ]
 
-        @test slice["A8:B"] ==
+        @test sub_table["A8:B"] ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test slice["A:B8"] ==
+        @test sub_table["A:B8"] ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test slice["A1:B2"] == ["text" "regular_text"; "integer" 102.0]
-        @test slice["A:B"] == slice[:, :]
+        @test sub_table["A1:B2"] == ["text" "regular_text"; "integer" 102.0]
+        @test sub_table["A:B"] == sub_table[:, :]
 
-        @test_throws XLError slice["a1"]
-        @test_throws XLError slice["A:A:B"]
-        @test_throws XLError slice["A::B"]
-        @test_throws XLError slice["A1:1A"]
-        @test_throws XLError slice["a:B"]
-        @test_throws XLError slice["A:b"]
-        @test_throws XLError slice[":A"]
-        @test_throws XLError slice["A:"]
-        @test_throws XLError slice[":A:"]
-        @test_throws XLError slice["1:A:"]
-        @test_throws XLError slice[":A:1"]
-        @test_throws XLError slice[":A:B"]
-        @test_throws XLError slice["A:B:"]
-        @test_throws XLError slice["1A:B2"]
-        @test_throws XLError slice["A1B2"]
-        @test_throws XLError slice["A101:B02"]
+        @test_throws XLError sub_table["a1"]
+        @test_throws XLError sub_table["A:A:B"]
+        @test_throws XLError sub_table["A::B"]
+        @test_throws XLError sub_table["A1:1A"]
+        @test_throws XLError sub_table["a:B"]
+        @test_throws XLError sub_table["A:b"]
+        @test_throws XLError sub_table[":A"]
+        @test_throws XLError sub_table["A:"]
+        @test_throws XLError sub_table[":A:"]
+        @test_throws XLError sub_table["1:A:"]
+        @test_throws XLError sub_table[":A:1"]
+        @test_throws XLError sub_table[":A:B"]
+        @test_throws XLError sub_table["A:B:"]
+        @test_throws XLError sub_table["1A:B2"]
+        @test_throws XLError sub_table["A1B2"]
+        @test_throws XLError sub_table["A101:B02"]
     end
 
     @testset "Case №3: Sub-...-SubXLSheet" begin
-        sub_slice = slice["A1:B4"]
+        sub_sub_table = sub_table["A1:B4"]
 
-        parent(slice) == xlsx["general"]
-        parent(sub_slice) == xlsx["general"]
-        parent(sub_slice) == parent(slice)
+        parent(sub_table) == xlsx["general"]
+        parent(sub_sub_table) == xlsx["general"]
+        parent(sub_sub_table) == parent(sub_table)
 
-        sub_slice == [
+        sub_sub_table == [
             "text"          "regular_text"
             "integer"    102.0
             "float"      102.2
@@ -380,7 +380,7 @@ end
     end
 
     @testset "Case №4: Utils" begin
-        @test xl_rowtable(slice) == [
+        @test xl_rowtable(sub_table) == [
             (A = "text", B = "regular_text"),
             (A = "integer", B = 102.0),
             (A = "float", B = 102.2),
@@ -393,7 +393,7 @@ end
             (A = "bigint neg", B = "-100000000000000"),
         ]
 
-        @test xl_rowtable(slice; header = true) == [
+        @test xl_rowtable(sub_table; header = true) == [
             (text = "integer", regular_text = 102.0),
             (text = "float", regular_text = 102.2),
             (text = "date", regular_text = 30422.0),
@@ -405,7 +405,7 @@ end
             (text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
-        @test xl_rowtable(slice; header = true, alt_keys = Dict("text" => "alt_text")) == [
+        @test xl_rowtable(sub_table; header = true, alt_keys = Dict("text" => "alt_text")) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
             (alt_text = "date", regular_text = 30422.0),
@@ -417,7 +417,7 @@ end
             (alt_text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
-        @test xl_rowtable(slice; alt_keys = ["alt_text", "regular_text"]) == [
+        @test xl_rowtable(sub_table; alt_keys = ["alt_text", "regular_text"]) == [
             (alt_text = "text", regular_text = "regular_text"),
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
@@ -430,7 +430,7 @@ end
             (alt_text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
-        @test xl_rowtable(slice; header = true, alt_keys = ["alt_text", "regular_text"]) == [
+        @test xl_rowtable(sub_table; header = true, alt_keys = ["alt_text", "regular_text"]) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
             (alt_text = "date", regular_text = 30422.0),
@@ -442,7 +442,7 @@ end
             (alt_text = "bigint neg", regular_text = "-100000000000000"),
         ]
 
-        @test xl_columntable(slice) == (
+        @test xl_columntable(sub_table) == (
             A = Any[
                 "text",
                 "integer",
@@ -469,7 +469,7 @@ end
             ],
         )
 
-        @test xl_columntable(slice; header = true) == (
+        @test xl_columntable(sub_table; header = true) == (
             text = Any[
                 "integer",
                 "float",
@@ -494,7 +494,7 @@ end
             ],
         )
 
-        @test xl_columntable(slice; header = true, alt_keys = Dict("text" => "alt_text")) == (
+        @test xl_columntable(sub_table; header = true, alt_keys = Dict("text" => "alt_text")) == (
             alt_text = Any[
                 "integer",
                 "float",
@@ -519,7 +519,7 @@ end
             ],
         )
 
-        @test xl_columntable(slice; alt_keys = ["alt_text", "regular_text"]) == (
+        @test xl_columntable(sub_table; alt_keys = ["alt_text", "regular_text"]) == (
             alt_text = Any[
                 "text",
                 "integer",
@@ -546,7 +546,7 @@ end
             ],
         )
 
-        @test xl_columntable(slice; header = true, alt_keys = ["alt_text", "regular_text"]) == (
+        @test xl_columntable(sub_table; header = true, alt_keys = ["alt_text", "regular_text"]) == (
             alt_text = Any[
                 "integer",
                 "float",
