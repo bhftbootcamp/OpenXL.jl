@@ -121,7 +121,7 @@ struct SubXLSheet <:AbstractXLSheet
     table::SubArray
 end
 
-Base.parent(x::SubXLSheet) = isa(x.parent, XLSheet) ? x.parent : parent(x)
+Base.parent(x::SubXLSheet) = isa(x.parent, SubXLSheet) ? parent(x.parent) : x.parent
 xl_sheetname(x::SubXLSheet) = xl_sheetname(parent(x))
 xl_table(x::SubXLSheet) = Matrix(x.table)
 
