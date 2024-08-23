@@ -305,7 +305,7 @@ end
     end
 end
 
-@testset "Table interface" begin
+@testset "SubXLSheet interface" begin
     slice = xlsx["general"][:, :]
 
     @testset "Case №1: Accessors" begin
@@ -364,7 +364,22 @@ end
         @test_throws XLError slice["A101:B02"]
     end
 
-    @testset "Case №3: Utils" begin
+    @testset "Case №3: Sub-...-SubXLSheet" begin
+        sub_slice = slice["A1:B4"]
+
+        parent(slice) == xlsx["general"]
+        parent(sub_slice) == xlsx["general"]
+        parent(sub_slice) == parent(slice)
+
+        sub_slice == [
+            "text"          "regular_text"
+            "integer"    102.0
+            "float"      102.2
+            "date"     30422.0
+        ]
+    end
+
+    @testset "Case №4: Utils" begin
         @test xl_rowtable(slice) == [
             (A = "text", B = "regular_text"),
             (A = "integer", B = 102.0),
