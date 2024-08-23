@@ -151,14 +151,19 @@ function range_to_indices(x::AbstractXLSheet, parts::NTuple{2,CellRange})
             l_part.row, l_part.column
         end
     else
-        if isnothing(l_part.row) && isnothing(r_part.row)
-            (:), (l_part.column:r_part.column)
-        elseif isnothing(r_part.row)
-            (l_part.row:num_row), (l_part.column:r_part.column)
-        elseif isnothing(l_part.row)
-            (r_part.row:num_row), (l_part.column:r_part.column)
+        column_inds = if l_part.column == r_part.column
+            l_part.column
         else
-            (l_part.row:r_part.row), (l_part.column:r_part.column)
+            (l_part.column:r_part.column)
+        end
+        if isnothing(l_part.row) && isnothing(r_part.row)
+            (:), column_inds
+        elseif isnothing(r_part.row)
+            (l_part.row:num_row), column_inds
+        elseif isnothing(l_part.row)
+            (r_part.row:num_row), column_inds
+        else
+            (l_part.row:r_part.row), column_inds
         end
     end
 end
