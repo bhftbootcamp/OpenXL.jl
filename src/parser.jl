@@ -1,22 +1,38 @@
 # xl_parser
 
-function is_ignore_path(path::String)
-    return startswith(path, "xl/worksheets/_rels/") || startswith(path, "xl/media/")
+function split_filepath(file::AbstractString)
+    path = dirname(file)
+    name_ext = match(r"^([^.]+)(\..+)$", basename(file))
+    name, ext = isnothing(name_ext) ? (nothing, nothing) : name_ext
+    return path, name, ext
+end
+
+function is_allowed_file(file::AbstractString)
+    path, name, ext = split_filepath(file)
+    return if path == "xl" # Parse only `workbook.xml` and `sharedStrings.xml`
+        name == "workbook" && ext == ".xml" ||
+        name == "sharedStrings" && ext == ".xml"
+    elseif path == "xl/_rels" # Parse only `workbook.xml.rels`
+        name == "workbook" && ext == ".xml.rels"
+    elseif path == "xl/worksheets" # Parse all `.xml` files
+        ext == ".xml"
+    else
+        false
+    end
 end
 
 function unzip_xl(buff::IOBuffer)
     outs = Dict{String,Any}()
     zip_reader = ZipFile.Reader(buff)
     for file_entry in zip_reader.files
-        is_ignore_path(file_entry.name) && continue
-        path_parts = splitpath(file_entry.name)
+        is_allowed_file(file_entry.name) || continue
         end_node = outs
-        for part in path_parts[1:end-1]
+        for part in splitpath(dirname(file_entry.name))
             end_node = get!(end_node, part, Dict{String,Any}())
         end
         file = read(file_entry)
         if !isempty(file)
-            end_node[path_parts[end]] = parse_xml(file)
+            end_node[basename(file_entry.name)] = parse_xml(file)
         end
     end
     close(zip_reader)
