@@ -4,9 +4,9 @@ function is_ignore_path(path::String)
     return startswith(path, "xl/worksheets/_rels/") || startswith(path, "xl/media/")
 end
 
-function unzip_xl(buff::IOBuffer)
+function unzip_xl(io::IOBuffer)
     outs = Dict{String,Any}()
-    zip_reader = ZipFile.Reader(buff)
+    zip_reader = ZipFile.Reader(io)
     for file_entry in zip_reader.files
         is_ignore_path(file_entry.name) && continue
         path_parts = splitpath(file_entry.name)
@@ -23,8 +23,8 @@ function unzip_xl(buff::IOBuffer)
     return outs
 end
 
-function deser_xl(::Type{XL}, buff::IOBuffer)
-    return Serde.to_deser(XL, unzip_xl(buff)["xl"])
+function deser_xl(::Type{XL}, io::IOBuffer)
+    return Serde.to_deser(XL, unzip_xl(io)["xl"])
 end
 
 """
@@ -48,11 +48,11 @@ julia> xl_parse(raw_xlsx)
 ```
 """
 function xl_parse(x::Vector{UInt8})
-    buff = IOBuffer(x)
+    io = IOBuffer(x)
     try
-        XLWorkbook(deser_xl(XL, buff))
+        XLWorkbook(deser_xl(XL, io))
     finally
-        close(buff)
+        close(io)
     end
 end
 
