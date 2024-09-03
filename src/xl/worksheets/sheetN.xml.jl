@@ -1,11 +1,11 @@
 module WorksheetXML
 
-export WorksheetFile, read_worksheet, nrow, ncol
+export Worksheet, read_worksheet, nrow, ncol
 
 using ZipFile
 using Serde
 
-using ..OpenXL: Maybe, read_zipfile, parse_cell_addr
+using ..OpenXL: Maybe, ExcelFile, parse_cell_addr
 
 struct FormulaItem
     _::Maybe{String}
@@ -106,21 +106,16 @@ function Serde.deser(
     return T[]
 end
 
-struct WorksheetFile
+struct Worksheet <: ExcelFile
     sheetData::SheetDataItem
 end
 
-function nrow(worksheet::WorksheetFile)
+function nrow(worksheet::Worksheet)
     return maximum(row -> row.r, worksheet.sheetData.row, init = 0)
 end
 
-function ncol(worksheet::WorksheetFile)
+function ncol(worksheet::Worksheet)
     return maximum([parse_cell_addr(last(x.c).r).column for x in worksheet.sheetData.row if !isempty(x.c)], init = 0)
-end
-
-function read_worksheet(x::ZipFile.Reader, path::AbstractString)
-    file = read_zipfile(x, path)
-    return Serde.to_deser(WorksheetFile, parse_xml(file))
 end
 
 end

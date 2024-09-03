@@ -1,11 +1,10 @@
 module WorkbookXML
 
-export WorkbookFile, read_workbook
+export WorkbookFile
 
-using ZipFile
 using Serde
 
-using ..OpenXL: Maybe, read_zipfile
+using ..OpenXL: Maybe, ExcelFile
 
 struct SheetItem
     name::String
@@ -25,13 +24,8 @@ function Serde.deser(
     return T[Serde.deser(T, x)]
 end
 
-struct WorkbookFile
+struct WorkbookFile <: ExcelFile
     sheets::SheetsItem
-end
-
-function read_workbook(x::ZipFile.Reader)
-    file = read_zipfile(x, "xl/workbook.xml")
-    return Serde.to_deser(WorkbookFile, parse_xml(file))
 end
 
 end

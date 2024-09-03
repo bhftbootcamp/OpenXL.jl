@@ -1,9 +1,8 @@
 #__ parser
 
-function read_zipfile(x::ZipFile.Reader, name::AbstractString)
-    ind = findfirst(file -> file.name == name, x.files)
-    return isnothing(ind) ? nothing : read(x.files[ind])
-end
+using ZipFile: Reader
+
+abstract type ExcelFile end
 
 include("xl/workbook.xml.jl")
 using .WorkbookXML
@@ -17,14 +16,41 @@ using .sharedStringsXML
 include("xl/worksheets/sheetN.xml.jl")
 using .WorksheetXML
 
-struct XL
-    rels::WorkbookRelsFile
-    worksheets::Vector{WorksheetFile}
-    sharedStrings::Maybe{SharedStringsFile}
+function read_zip_file(x::Reader, name::AbstractString, ::Type{T}) where {T<:ExcelFile}
+    ind = findfirst(file -> file.name == name, x.files)
+    if isnothing(ind)
+        nothing
+    else
+        deser_xml(T, read(x.files[ind]))
+    end
+end
+
+struct XLDocument
+    rels::WorkbookRels
+    worksheets::Vector{Worksheet}
+    sharedStrings::Maybe{SharedStrings}
     workbook::WorkbookFile
 end
 
-function Base.getindex(x::XL, cell::WorksheetXML.CellItem)
+function XLDocument(io::IOBuffer)
+    z = Reader(io)
+    try
+        rels = read_zip_file(z, "xl/_rels/workbook.xml.rels", WorkbookRels)
+        shared_strings = read_zip_file(z, "xl/sharedStrings.xml", SharedStrings)
+        xl_workbook = read_zip_file(z, "xl/workbook.xml", WorkbookFile)
+
+        sheets = map(xl_workbook.sheets.sheet) do sheet
+            p = joinpath("xl", rels[sheet.id].Target)
+            read_zip_file(z, p, Worksheet)
+        end
+
+        XLDocument(rels, sheets, shared_strings, xl_workbook)
+    finally
+        close(z)
+    end
+end
+
+function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
     return if cell.t == "inlineStr"
         string(cell.is)
     elseif !isnothing(cell.f)
@@ -42,21 +68,7 @@ function Base.getindex(x::XL, cell::WorksheetXML.CellItem)
     end
 end
 
-function unzip_xl(io::IOBuffer)
-    _zip = ZipFile.Reader(io)
-    xl_workbook = read_workbook(_zip)
-    workbook_rels = read_workbookrels(_zip)
-    shared_strings = read_shared_strings(_zip)
-
-    sheets = map(xl_workbook.sheets.sheet) do sheet
-        sheet_path = joinpath("xl", workbook_rels[sheet.id].Target)
-        return read_worksheet(_zip, sheet_path)
-    end
-
-    return XL(workbook_rels, sheets, shared_strings, xl_workbook)
-end
-
-function Base.convert(::Type{XLWorkbook}, xl::XL)
+function Base.convert(::Type{XLWorkbook}, xl::XLDocument)
     r = map(zip(xl.workbook.sheets.sheet, xl.worksheets)) do (sheet_info, sheet_data)
         result = Matrix{Any}(nothing, nrow(sheet_data), ncol(sheet_data))
         for row in sheet_data.sheetData.row
@@ -93,7 +105,7 @@ julia> xl_parse(raw_xlsx)
 function xl_parse(x::Vector{UInt8})
     io = IOBuffer(x)
     try
-        convert(XLWorkbook, unzip_xl(io))
+        convert(XLWorkbook, XLDocument(io))
     finally
         close(io)
     end

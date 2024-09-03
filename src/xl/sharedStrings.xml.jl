@@ -1,11 +1,10 @@
 module sharedStringsXML
 
-export SharedStringsFile, read_shared_strings
+export SharedStrings
 
-using ZipFile
 using Serde
 
-using ..OpenXL: Maybe, read_zipfile
+using ..OpenXL: Maybe, ExcelFile
 
 struct TextItem
     _::String
@@ -48,23 +47,18 @@ function Serde.deser(
     return T[]
 end
 
-struct SharedStringsFile
+struct SharedStrings <: ExcelFile
     count::String
     uniqueCount::String
     si::Maybe{Vector{SharedItem}}
 end
 
 function Serde.deser(
-    ::Type{SharedStringsFile},
+    ::Type{SharedStrings},
     ::Type{Vector{T}},
     x::AbstractDict,
 ) where {T<:SharedItem}
     return T[Serde.deser(T, x)]
-end
-
-function read_shared_strings(x::ZipFile.Reader)
-    file = read_zipfile(x, "xl/sharedStrings.xml")
-    return isnothing(file) ? nothing : Serde.to_deser(SharedStringsFile, parse_xml(file))
 end
 
 end
