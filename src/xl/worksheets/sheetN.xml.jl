@@ -120,7 +120,7 @@ end
 
 function read_worksheet(x::ZipFile.Reader, path::AbstractString)
     file = read_zipfile(x, path)
-    return Serde.to_deser(WorksheetFile, parse_xml(file))
+    return deser_xml(WorksheetFile, file)
 end
 
 end

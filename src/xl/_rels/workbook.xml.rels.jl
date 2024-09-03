@@ -44,7 +44,7 @@ end
 
 function read_workbookrels(x::ZipFile.Reader)
     file = read_zipfile(x, "xl/_rels/workbook.xml.rels")
-    return Serde.to_deser(WorkbookRelsFile, parse_xml(file))
+    return deser_xml(WorkbookRelsFile, file)
 end
 
 end

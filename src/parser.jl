@@ -43,14 +43,14 @@ function Base.getindex(x::XL, cell::WorksheetXML.CellItem)
 end
 
 function unzip_xl(io::IOBuffer)
-    _zip = ZipFile.Reader(io)
-    xl_workbook = read_workbook(_zip)
-    workbook_rels = read_workbookrels(_zip)
-    shared_strings = read_shared_strings(_zip)
+    zipfile = ZipFile.Reader(io)
+    xl_workbook = read_workbook(zipfile)
+    workbook_rels = read_workbookrels(zipfile)
+    shared_strings = read_shared_strings(zipfile)
 
     sheets = map(xl_workbook.sheets.sheet) do sheet
         sheet_path = joinpath("xl", workbook_rels[sheet.id].Target)
-        return read_worksheet(_zip, sheet_path)
+        read_worksheet(zipfile, sheet_path)
     end
 
     return XL(workbook_rels, sheets, shared_strings, xl_workbook)

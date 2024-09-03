@@ -64,7 +64,11 @@ end
 
 function read_shared_strings(x::ZipFile.Reader)
     file = read_zipfile(x, "xl/sharedStrings.xml")
-    return isnothing(file) ? nothing : Serde.to_deser(SharedStringsFile, parse_xml(file))
+    return if isnothing(file)
+        nothing
+    else
+        deser_xml(SharedStringsFile, file)
+    end
 end
 
 end

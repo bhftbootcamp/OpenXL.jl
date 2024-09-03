@@ -31,7 +31,7 @@ end
 
 function read_workbook(x::ZipFile.Reader)
     file = read_zipfile(x, "xl/workbook.xml")
-    return Serde.to_deser(WorkbookFile, parse_xml(file))
+    return deser_xml(WorkbookFile, file)
 end
 
 end
