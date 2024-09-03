@@ -16,13 +16,10 @@ using .sharedStringsXML
 include("xl/worksheets/sheetN.xml.jl")
 using .WorksheetXML
 
-function read_zip_file(x::Reader, name::AbstractString, ::Type{T}) where {T<:ExcelFile}
+function read_zip_file(x::Reader, name::String, ::Type{T}) where {T<:Maybe{ExcelFile}}
     ind = findfirst(file -> file.name == name, x.files)
-    if isnothing(ind)
-        nothing
-    else
-        deser_xml(T, read(x.files[ind]))
-    end
+    ind == nothing && Nothing <: T && return nothing
+    return deser_xml(T, read(x.files[ind]))
 end
 
 struct XLDocument
@@ -36,7 +33,7 @@ function XLDocument(io::IOBuffer)
     z = Reader(io)
     try
         rels = read_zip_file(z, "xl/_rels/workbook.xml.rels", WorkbookRels)
-        shared_strings = read_zip_file(z, "xl/sharedStrings.xml", SharedStrings)
+        shared_strings = read_zip_file(z, "xl/sharedStrings.xml", Maybe{SharedStrings})
         xl_workbook = read_zip_file(z, "xl/workbook.xml", WorkbookFile)
 
         sheets = map(xl_workbook.sheets.sheet) do sheet
