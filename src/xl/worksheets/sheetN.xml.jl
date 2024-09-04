@@ -1,18 +1,16 @@
 module WorksheetXML
 
-export WorksheetFile, read_worksheet, nrow, ncol
+export Worksheet, nrow, ncol
 
-using ZipFile
 using Serde
-
-using ..OpenXL: Maybe, read_zipfile, parse_cell_addr
+import ..ExcelFile, ..parse_cell_addr
 
 struct FormulaItem
-    _::Maybe{String}
+    _::Union{Nothing,String}
 end
 
 struct ValueItem
-    _::Maybe{String}
+    _::Union{Nothing,String}
 end
 
 struct TextItem
@@ -26,13 +24,13 @@ function Serde.deser(::Type{TextItem}, ::Type{String}, x::Nothing)
 end
 
 struct RichTextItem
-    t::Maybe{TextItem}
+    t::Union{Nothing,TextItem}
 end
 
 Base.string(x::RichTextItem) = x.t._
 
 struct InlineStringItem
-    t::Maybe{TextItem}
+    t::Union{Nothing,TextItem}
     r::Vector{RichTextItem}
 end
 
@@ -58,11 +56,11 @@ end
 
 struct CellItem
     r::String
-    s::Maybe{String}
-    t::Maybe{String}
-    v::Maybe{ValueItem}
-    is::Maybe{InlineStringItem}
-    f::Maybe{FormulaItem}
+    s::Union{Nothing,String}
+    t::Union{Nothing,String}
+    v::Union{Nothing,ValueItem}
+    is::Union{Nothing,InlineStringItem}
+    f::Union{Nothing,FormulaItem}
 end
 
 struct RowItem
@@ -106,21 +104,16 @@ function Serde.deser(
     return T[]
 end
 
-struct WorksheetFile
+struct Worksheet <: ExcelFile
     sheetData::SheetDataItem
 end
 
-function nrow(worksheet::WorksheetFile)
+function nrow(worksheet::Worksheet)
     return maximum(row -> row.r, worksheet.sheetData.row, init = 0)
 end
 
-function ncol(worksheet::WorksheetFile)
+function ncol(worksheet::Worksheet)
     return maximum([parse_cell_addr(last(x.c).r).column for x in worksheet.sheetData.row if !isempty(x.c)], init = 0)
-end
-
-function read_worksheet(x::ZipFile.Reader, path::AbstractString)
-    file = read_zipfile(x, path)
-    return Serde.to_deser(WorksheetFile, parse_xml(file))
 end
 
 end

@@ -28,8 +28,6 @@ function Base.showerror(io::IO, e::XLError)
     print(io, "XLError: ", e.message)
 end
 
-const Maybe{T} = Union{Nothing,T}
-
 include("utils.jl")
 include("interface.jl")
 include("parser.jl")

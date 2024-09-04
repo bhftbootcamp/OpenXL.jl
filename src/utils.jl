@@ -54,8 +54,8 @@ function index_to_column_letter(inx::Int)
 end
 
 struct CellRange
-    column::Maybe{Int}
-    row::Maybe{Int}
+    column::Union{Nothing,Int}
+    row::Union{Nothing,Int}
 end
 
 function parse_cell_addr(addr::AbstractString)
