@@ -1,6 +1,6 @@
 name = "OpenXL"
 uuid = "5439f3e2-bb62-4031-b438-a07447f64eb9"
-version = "3.0.0"
+version = "3.1.0"
 
 [deps]
 Serde = "db9b398d-9517-45f8-9a95-92af99003e0e"

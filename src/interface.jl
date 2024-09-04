@@ -188,21 +188,6 @@ See also: [`xl_parse`](@ref).
 """
 struct XLWorkbook <: AbstractVector{XLSheet}
     sheets::Vector{XLSheet}
-
-    function XLWorkbook(xl::XL)
-        r = map(xl.workbook_xml.sheets.sheet) do ws
-            sheet = xl[ws]
-            result = Matrix{Any}(nothing, nrow(sheet), ncol(sheet))
-            for row in sheet.sheetData.row
-                for cell in row.c
-                    column_addr = parse_cell_addr(cell.r).column
-                    result[row.r, column_addr] = xl[cell]
-                end
-            end
-            XLSheet(ws.name, ws.sheetId, result)
-        end
-        return new(r)
-    end
 end
 
 Base.size(x::XLWorkbook) = size(x.sheets)
