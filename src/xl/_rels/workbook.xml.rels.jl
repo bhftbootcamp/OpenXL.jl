@@ -1,3 +1,8 @@
+# <Relationships>
+#     <Relationship Id="rId1" Type="http://schemas.openxmlformats..." Target="xl/workbook.xml" />
+#     ...
+# </Relationships>
+
 module WorkbookRelsXML
 
 export WorkbookRels

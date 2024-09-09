@@ -1,12 +1,7 @@
-
 # <styleSheet>
 #     <cellXfs count="6">
-#         <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" />
-#         <xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" />
-#         <xf numFmtId="20" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" />
-#         <xf numFmtId="22" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" />
-#         <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" quotePrefix="1" />
-#         <xf numFmtId="11" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" />
+#         <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" .../>
+#         ...
 #     </cellXfs>
 # </styleSheet>
 

@@ -1,3 +1,10 @@
+# <workbook>
+#     <sheets>
+#         <sheet state="visible" name="Sheet1" sheetId="1" r:id="rId1" />
+#         ...
+#     </sheets>
+# </workbook>
+
 module WorkbookXML
 
 export Workbook

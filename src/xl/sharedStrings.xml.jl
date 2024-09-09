@@ -1,3 +1,10 @@
+# <sst count="999" uniqueCount="99">
+#     <si>
+#         <t>0</t>
+#     </si>
+#     ...
+# </sst>
+
 module sharedStringsXML
 
 export SharedStrings
