@@ -12,6 +12,8 @@ XLWorkbook
 OpenXL.AbstractXLSheet
 XLSheet
 SubXLSheet
+OpenXL.AbstractXLCell
+XLCell
 ```
 
 ## Methods
@@ -26,6 +28,10 @@ xl_print
 ## Utils
 
 ```@docs
+OpenXL.xl_num2time
+OpenXL.xl_num2date
+OpenXL.xl_num2datetime
+OpenXL.format_description
 OpenXL.index_to_column_letter
 OpenXL.column_letter_to_index
 ```

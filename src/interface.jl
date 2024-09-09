@@ -1,11 +1,60 @@
 # xl_interface
 
 """
-    AbstractXLSheet <: AbstractArray{Any,2}
+    AbstractXLCell
+
+Abstract supertype for table cells.
+"""
+abstract type AbstractXLCell end
+
+"""
+    XLCell{T} <: AbstractXLCell
+
+A table cell containing a value and information about its formatting.
+
+!!! note
+    To extract the value of a cell, the empty index operator (`[]`) can be used.
+
+## Fields
+- `value::T`: Cell value.
+- `format::Int`: Number format id (see [Number Format](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.numberingformat?view=openxml-3.0.1)).
+"""
+struct XLCell{T} <: AbstractXLCell
+    value::T
+    format::Int
+
+    function XLCell(val::T, id::Int) where {T<:Union{Nothing,String,Float64,DateTime}}
+        return new{T}(val, id)
+    end
+end
+
+Base.eltype(::XLCell{T}) where {T} = T
+Base.convert(::Type{XLCell}, x::Nothing) = XLCell(nothing, 0)
+
+Base.:(==)(x::XLCell, y::XLCell) = cell_value(x) == cell_value(y)
+Base.isequal(x::XLCell, y::XLCell) = isequal(cell_value(x), cell_value(y))
+
+Base.string(x::XLCell{Nothing}) = "*"
+Base.string(x::XLCell{String}) = repr(cell_value(x))
+Base.string(x::XLCell{Float64}) = format_number(cell_value(x), cell_format(x))
+Base.string(x::XLCell{DateTime}) = format_datetime(cell_value(x), cell_format(x))
+
+cell_value(x::XLCell) = x.value
+cell_format(x::XLCell) = x.format
+cell_string(x::XLCell) = string(x)
+
+Base.show(io::IO, x::XLCell{T}) where {T} = print(io, "XLCell{", T, "}(", cell_string(x), ")")
+
+function Base.getindex(x::XLCell)
+    return cell_value(x)
+end
+
+"""
+    AbstractXLSheet <: AbstractArray{AbstractXLCell,2}
 
 Abstract supertype for [`XLSheet`](@ref) and [`SubXLSheet`](@ref).
 """
-abstract type AbstractXLSheet <: AbstractArray{Any,2} end
+abstract type AbstractXLSheet <: AbstractArray{AbstractXLCell,2} end
 
 """
     XLSheet <: AbstractXLSheet
@@ -17,7 +66,7 @@ The sheet slice will be converted into a [`SubXLSheet`](@ref).
 
 ## Fields
 - `name::String`: Sheet name.
-- `table::Matrix`: Table representation.
+- `table::Matrix{AbstractXLCell}`: Table representation.
 
 ## Accessors
 - `xl_sheetname(x::XLSheet)`: Sheet name.
@@ -35,28 +84,32 @@ julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 
 julia> sheet = xlsx["Stock"]
 41x6 XLSheet("Stock")
- Sheet │ A      B         C        D         E              F
-───────┼─────────────────────────────────────────────────────────────────────
-     1 │ name   price     h24      volume    mkt            sector
-     2 │ MSFT   430.16    0.0007   11855456  3197000000000  Technology Serv…
-     3 │ AAPL   189.98    -0.0005  36327000  2913000000000  Electronic Tech…
-     4 │ NVDA   1064.69   0.0045   42948000  2662000000000  Electronic Tech…
-     ⋮ │ ⋮      ⋮         ⋮        ⋮         ⋮              ⋮
-    40 │ JNJ    146.97    0.0007   7.173e6   3.5371e11      Health Technolo…
-    41 │ ORCL   122.91    -0.0003  5.984e6   3.3782e11      Technology Serv…
+ Sheet │ A       B         C      D           E                 F                 
+───────┼─────────────────────────────────────────────────────────────────────────
+     1 │ "name"  "price"   "h24"  "volume"    "mkt"             "sector"          
+     2 │ "MSFT"  430.16    0.00   11,855,456  3,197,000,000,0…  "Technology Ser…  
+     3 │ "AAPL"  189.98    -0.00  36,327,000  2,913,000,000,0…  "Electronic Tec…  
+     4 │ "NVDA"  1,064.69  0.00   42,948,000  2,662,000,000,0…  "Electronic Tec…  
+     ⋮ │ ⋮       ⋮         ⋮      ⋮           ⋮                 ⋮                 
+    40 │ "JNJ"   146.97    0.00   7,173,000   353,710,000,000   "Health Technol…  
+    41 │ "ORCL"  122.91    -0.00  5,984,000   337,820,000,000   "Technology Ser… 
 ```
 """
 struct XLSheet <: AbstractXLSheet
     name::String
     id::Int64
-    table::Matrix
+    table::Matrix{XLCell}
+end
+
+Base.size(x::AbstractXLSheet) = (size(x.table, 1), size(x.table, 2))
+Base.size(x::AbstractXLSheet, dim) = size(x.table, dim)
+
+function Base.collect(x::AbstractXLSheet)
+    return map(cell_value, x)
 end
 
 xl_sheetname(x::XLSheet) = x.name
-xl_table(x::XLSheet) = x.table
-
-Base.size(x::AbstractXLSheet) = size(x.table)
-Base.size(x::AbstractXLSheet, dim) = size(x.table, dim)
+xl_table(x::XLSheet) = collect(x)
 
 xl_nrow(x::AbstractXLSheet) = size(x, 1)
 xl_ncol(x::AbstractXLSheet) = size(x, 2)
@@ -105,39 +158,32 @@ julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 
 julia> xlsx["Stock"]["A1:D25"]
 25x4 SubXLSheet("Stock")
- Sheet │ A      B         C        D
-───────┼───────────────────────────────────────
-     1 │ name   price     h24      volume
-     2 │ MSFT   430.16    0.0007   11855456
-     3 │ AAPL   189.98    -0.0005  36327000
-     4 │ NVDA   1064.69   0.0045   42948000
-     ⋮ │ ⋮      ⋮         ⋮        ⋮
-    24 │ NVDA   1064.69   0.0045   4.2948e7
-    25 │ GOOG   176.33    -0.0006  1.1404e7
+ Sheet │ A       B         C      D           
+───────┼─────────────────────────────────────
+     1 │ "name"  "price"   "h24"  "volume"    
+     2 │ "MSFT"  430.16    0.00   11,855,456  
+     3 │ "AAPL"  189.98    -0.00  36,327,000  
+     4 │ "NVDA"  1,064.69  0.00   42,948,000  
+     ⋮ │ ⋮       ⋮         ⋮      ⋮           
+    24 │ "NVDA"  1,064.69  0.00   42,948,000  
+    25 │ "GOOG"  176.33    -0.00  11,404,000 
 ```
 """
-struct SubXLSheet <:AbstractXLSheet
+struct SubXLSheet <: AbstractXLSheet
     parent::AbstractXLSheet
     table::SubArray
 end
 
 Base.parent(x::SubXLSheet) = isa(x.parent, SubXLSheet) ? parent(x.parent) : x.parent
 xl_sheetname(x::SubXLSheet) = xl_sheetname(parent(x))
-xl_table(x::SubXLSheet) = Matrix(x.table)
+xl_table(x::SubXLSheet) = collect(x)
 
-function Base.getindex(x::AbstractXLSheet, inds::Vararg{Any,2})
-    slice = view(x.table, inds...)
-    return if ndims(slice) == 0
-        slice[]
-    elseif ndims(slice) == 1
-        slice
-    elseif ndims(slice) == 2
-        SubXLSheet(x, slice)
-    end
+function Base.getindex(x::AbstractXLSheet, i::Int, j::Int)
+    return x.table[i, j]
 end
 
-function Base.setindex!(x::AbstractXLSheet, value::Any, inds::Vararg{Any,2})
-    return setindex!(x.table, value, inds...)
+function Base.getindex(x::AbstractXLSheet, inds::Vararg{Any,2})
+    return SubXLSheet(x, view(x.table, inds...))
 end
 
 function range_to_indices(x::AbstractXLSheet, parts::NTuple{2,CellRange})
@@ -166,11 +212,6 @@ end
 function Base.getindex(x::AbstractXLSheet, addr::AbstractString)
     inds = range_to_indices(x, parse_cell_range(addr))
     return getindex(x, inds...)
-end
-
-function Base.setindex!(x::AbstractXLSheet, value::Any, addr::AbstractString)
-    inds = range_to_indices(x, parse_cell_range(addr))
-    return setindex!(x, value, inds...)
 end
 
 """

@@ -7,6 +7,7 @@
         @test_nowarn xl_parse(read("xl_data/sparse_table.xlsx"))
         @test_nowarn xl_parse(read("xl_data/styled_table.xlsx"))
         @test_nowarn xl_parse(read("xl_data/general_tables.xlsx"))
+        @test_nowarn xl_parse(read("xl_data/general_formats.xlsx"))
         @test_nowarn xl_parse(read("xl_data/image_table.xlsx"))
     end
 

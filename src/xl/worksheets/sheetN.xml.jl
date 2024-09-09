@@ -56,7 +56,7 @@ end
 
 struct CellItem
     r::String
-    s::Union{Nothing,String}
+    s::Union{Nothing,Int64}
     t::Union{Nothing,String}
     v::Union{Nothing,ValueItem}
     is::Union{Nothing,InlineStringItem}

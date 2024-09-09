@@ -11,12 +11,25 @@ export xl_parse,
     xl_nrow,
     xl_ncol
 
+export cell_value,
+    cell_value!,
+    cell_format,
+    cell_format!
+
+export xl_format_cells!,
+    xl_format_rows!,
+    xl_format_cols!,
+    xl_format_sheet!
+
 export AbstractXLSheet,
     XLError,
+    XLCell,
     XLSheet,
     SubXLSheet,
     XLWorkbook
 
+using Dates
+using Printf
 using Serde
 using ZipFile
 

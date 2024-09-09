@@ -18,7 +18,7 @@ function head_tail(x::AbstractVector, head::Int, tail::Int)
     return if head >= len - tail
         x
     else
-        view(x, [1:head; len-tail+1:len])
+        view(x, [1:head; len-tail:len])
     end
 end
 
@@ -40,15 +40,15 @@ julia> xlsx = xl_parse(xl_sample_employee_xlsx())
  1001x13 XLSheet("Employee")
 
 julia> xl_print(xlsx["Employee"]; header = true)
- Sheet │ eeid    full_name        job_title         ⋯  country        city       exit_date
-───────┼───────────────────────────────────────────────────────────────────────────────────
-     2 │ E02387  Emily Davis      Sr. Manger        ⋯  United States  Seattle    44485.0
-     3 │ E04105  Theodore Dinh    Technical Archi…  ⋯  China          Chongqing  nothing
-     4 │ E02572  Luna Sanders     Director          ⋯  United States  Chicago    nothing
-     5 │ E02832  Penelope Jordan  Computer System…  ⋯  United States  Chicago    nothing
-     ⋮ │ ⋮       ⋮                ⋮                 ⋯  ⋮              ⋮          ⋮
-  1000 │ E02521  Lily Nguyen      Sr. Analyst       ⋯  China          Chengdu    nothing
-  1001 │ E03545  Sofia Cheng      Vice President    ⋯  United States  Miami      nothing
+ Sheet │ "eeid"    "full_name"       "job_title"       ⋯  "country"        "city"       "exit_date"  
+───────┼────────────────────────────────────────────────────────────────────────────────────────────
+     2 │ "E02387"  "Emily Davis"     "Sr. Manger"      ⋯  "United States"  "Seattle"    10-16-21     
+     3 │ "E04105"  "Theodore Dinh"   "Technical Arch…  ⋯  "China"          "Chongqing"  *            
+     4 │ "E02572"  "Luna Sanders"    "Director"        ⋯  "United States"  "Chicago"    *            
+     5 │ "E02832"  "Penelope Jorda…  "Computer Syste…  ⋯  "United States"  "Chicago"    *            
+     ⋮ │ ⋮         ⋮                 ⋮                 ⋯  ⋮                ⋮            ⋮            
+  1000 │ "E02521"  "Lily Nguyen"     "Sr. Analyst"     ⋯  "China"          "Chengdu"    *            
+  1001 │ "E03545"  "Sofia Cheng"     "Vice President"  ⋯  "United States"  "Miami"      *            
 ```
 """
 function xl_print(
@@ -59,10 +59,10 @@ function xl_print(
     compact::Bool = true,
     max_len::Int = compact ? 16 : typemax(Int),
 )
-    table = xl_table(sheet)
+    table = sheet
     isempty(table) && return nothing
     display_height, display_width = displaysize(io)
-    display_elements = floor(Int64, display_height/2 - 4)
+    display_elements = max(0, floor(Int64, display_height/2 - 4))
     num_rows, num_cols = size(table)
     title_width = max(length(title), ndigits(num_rows))
     cols, row_start = if header
@@ -131,7 +131,7 @@ function xl_print(
             print(io, rpad(value, col_widths[col_idx]), "  ")
             col_idx += 1
         end
-        print(io, "\n")
+        row_idx < num_rows && print(io, "\n")
         row_idx += 1
     end
 end

@@ -7,6 +7,9 @@ abstract type ExcelFile end
 include("xl/workbook.xml.jl")
 using .WorkbookXML
 
+include("xl/styles.xml.jl")
+using .StylesXML
+
 include("xl/_rels/workbook.xml.rels.jl")
 using .WorkbookRelsXML
 
@@ -21,6 +24,7 @@ struct XLDocument
     worksheets::Vector{Worksheet}
     sharedStrings::Union{Nothing,SharedStrings}
     workbook::Workbook
+    styles::Styles
 end
 
 function XLDocument(io::IOBuffer)
@@ -29,12 +33,13 @@ function XLDocument(io::IOBuffer)
         rels = xl_reader(WorkbookRels, "xl/_rels/workbook.xml.rels")
         shared_strings = xl_reader(Union{Nothing,SharedStrings}, "xl/sharedStrings.xml")
         workbook = xl_reader(Workbook, "xl/workbook.xml")
+        styles = xl_reader(Styles, "xl/styles.xml")
 
         worksheets = map(workbook.sheets.sheet) do sheet
             xl_reader(Worksheet, joinpath("xl", rels[sheet.id].Target))
         end
 
-        XLDocument(rels, worksheets, shared_strings, workbook)
+        XLDocument(rels, worksheets, shared_strings, workbook, styles)
     finally
         close(xl_reader)
     end
@@ -52,30 +57,37 @@ function (x::Reader)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}
 end
 
 function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
-    return if cell.t == "inlineStr"
+    return if cell.t == "inlineStr" # Inline string
         string(cell.is)
-    elseif !isnothing(cell.f)
-        isnothing(cell.v) ? cell.f._ : cell.v._
-    elseif isnothing(cell.v) || isnothing(cell.v._)
-        nothing
-    elseif cell.t == "s"
+    elseif cell.t == "s" # Shared string
         string(x.sharedStrings.si[parse(Int64, cell.v._)+1])
-    elseif cell.t == "b"
+    elseif cell.t == "str" || !isnothing(cell.f) # Formula
+        isnothing(cell.v) ? cell.f._ : cell.v._
+    elseif isnothing(cell.v) || isnothing(cell.v._) # Nothing
+        nothing
+    elseif cell.t == "b" # Bool
         cell.v._ == "1"
-    elseif cell.t == "str" || cell.t == "e"
+    elseif cell.t == "e" # Error
         cell.v._
-    else
-        parse(Float64, cell.v._)
+    else                 # Number or DateTime
+        number = parse(Float64, cell.v._)
+        fmt_id = x.styles[cell.s].numFmtId
+        if cell.t == "d" || 14 <= fmt_id <= 22 || 45 <= fmt_id <= 47
+            xl_num2datetime(number)
+        else
+            number
+        end
     end
 end
 
 function Base.convert(::Type{XLWorkbook}, xl::XLDocument)
     r = map(zip(xl.workbook.sheets.sheet, xl.worksheets)) do (sheet_info, sheet_data)
-        result = Matrix{Any}(nothing, nrow(sheet_data), ncol(sheet_data))
+        result = Matrix{XLCell}(nothing, nrow(sheet_data), ncol(sheet_data))
         for row in sheet_data.sheetData.row
             for cell in row.c
                 column_addr = parse_cell_addr(cell.r).column
-                result[row.r, column_addr] = xl[cell]
+                val = xl[cell]
+                result[row.r, column_addr] = XLCell(val, xl.styles[cell.s].numFmtId)
             end
         end
         XLSheet(sheet_info.name, sheet_info.sheetId, result)
@@ -92,7 +104,7 @@ Parse Excel file into [`XLWorkbook`](@ref) object.
 ## Examples
 ```julia-repl
 julia> raw_xlsx = xl_sample_employee_xlsx()
-48378-element Vector{UInt8}:
+77626-element Vector{UInt8}:
  0x50
  0x4b
     ⋮
