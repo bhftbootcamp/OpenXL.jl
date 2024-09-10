@@ -11,9 +11,6 @@ export xl_parse,
     xl_nrow,
     xl_ncol
 
-export cell_value,
-    cell_format
-
 export AbstractXLSheet,
     XLError,
     XLCell,
