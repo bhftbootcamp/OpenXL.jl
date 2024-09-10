@@ -41,7 +41,7 @@ end
 
 function Base.iterate(iter::XLSheetRowIter{names}, state::Int = iter.current_row) where {names}
     state > iter.total_rows && return nothing
-    rd = [cell_value(iter.sheet[state, j]) for j = 1:length(iter.columns)]
+    rd = [iter.sheet[state, j] for j = 1:length(iter.columns)]
     return (NamedTuple{names}(rd), state + 1)
 end
 
@@ -137,5 +137,5 @@ julia> xl_columntable(xlsx["Stock"][2:end, 1:3]; alt_keys)
 """
 function xl_columntable(x::AbstractXLSheet; kw...)
     iter = XLSheetRowIter(x; kw...)
-    return eltype(iter)(eachcol(map(cell_value, x[iter.current_row:iter.total_rows, :])))
+    return eltype(iter)(eachcol(x[iter.current_row:iter.total_rows, :]))
 end

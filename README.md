@@ -36,15 +36,15 @@ julia> xlsx = xl_parse(raw_xlsx)
 
 julia> sheet = xlsx["Ticker24h"]
 2682x19 XLSheet("Ticker24h")
- Sheet │ A         B          C         ⋯  Q           R             S                 
-───────┼──────────────────────────────────────────────────────────────────────────────
-     1 │ "symbol"  "askPrice" "askQty"  ⋯  "count"     "volume"      "weightedAvgPri…  
-     2 │ "ETHBTC"  0.05       8.11      ⋯  473,424.00  86,904.90     0.05              
-     3 │ "LTCBTC"  0.00       308.76    ⋯  43,966.00   130,937.57    0.00              
-     4 │ "BNBBTC"  0.01       1.04      ⋯  277,360.00  99,484.88     0.01              
-     ⋮ │  ⋮         ⋮          ⋮         ⋯   ⋮           ⋮             ⋮                 
-  2681 │ "ZKUSDC"  0.14       3,612.70  ⋯  1,572.00    1,389,551.60  0.15              
-  2682 │ "ZROUSDC" 2.92       437.83    ⋯  7,957.00    356,187.29    3.08        
+ Sheet │ A        B         C        ⋯  Q         R            S                 
+───────┼────────────────────────────────────────────────────────────────────────
+     1 │ symbol   askPrice  askQty   ⋯  count     volume       weightedAvgPrice  
+     2 │ ETHBTC   0.05296   8.1061   ⋯  473424.0  86904.9028   0.05347515        
+     3 │ LTCBTC   0.001072  308.762  ⋯  43966.0   130937.575   0.00110825        
+     4 │ BNBBTC   0.008633  1.036    ⋯  277360.0  99484.88     0.00883183        
+     ⋮ │  ⋮        ⋮         ⋮        ⋯   ⋮         ⋮            ⋮                 
+  2681 │ ZKUSDC   0.1386    3612.7   ⋯  1572.0    1.3895516e6  0.15005404        
+  2682 │ ZROUSDC  2.925     437.83   ⋯  7957.0    356187.29    3.07800556
 ```
 
 You can slice a table using address indexing and then convert the data to a row representation:
@@ -58,15 +58,15 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 
 julia> sheet = xlsx["Ticker24h"]["A1:E"]
 2682x5 SubXLSheet("Ticker24h")
- Sheet │ A          B           C         D           E          
-───────┼────────────────────────────────────────────────────────
-     1 │ "symbol"   "askPrice"  "askQty"  "bidPrice"  "bidQty"   
-     2 │ "ETHBTC"   0.05        8.11      0.05        50.57      
-     3 │ "LTCBTC"   0.00        308.76    0.00        1,433.70   
-     4 │ "BNBBTC"   0.01        1.04      0.01        8.14       
-     ⋮ │  ⋮          ⋮            ⋮         ⋮           ⋮          
-  2681 │ "ZKUSDC"   0.14        3,612.70  0.14        11,976.90  
-  2682 │ "ZROUSDC"  2.92        437.83    2.92        353.73     
+ Sheet │ A        B         C        D         E         
+───────┼────────────────────────────────────────────────
+     1 │ symbol   askPrice  askQty   bidPrice  bidQty    
+     2 │ ETHBTC   0.05296   8.1061   0.05295   50.5655   
+     3 │ LTCBTC   0.001072  308.762  0.001071  1433.702  
+     4 │ BNBBTC   0.008633  1.036    0.008632  8.139     
+     ⋮ │  ⋮        ⋮          ⋮        ⋮         ⋮         
+  2681 │ ZKUSDC   0.1386    3612.7   0.138     11976.9   
+  2682 │ ZROUSDC  2.925     437.83   2.922     353.73  
 
 julia> xl_rowtable(sheet; header = true)
 2681-element Vector{NamedTuple{(:symbol, :askPrice, :askQty, :bidPrice, :bidQty)}}:
@@ -90,15 +90,15 @@ julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
 
 julia> sheet = xlsx["Ticker24h"][2:500, 7:10]
 499x4 SubXLSheet("Ticker24h")
- Sheet │ A     B     C     D     
-───────┼────────────────────────
-     1 │ 0.05  0.06  0.05  0.05  
-     2 │ 0.00  0.00  0.00  0.00  
-     3 │ 0.01  0.01  0.01  0.01  
-     4 │ 0.00  0.00  0.00  0.00  
-     ⋮ │  ⋮     ⋮      ⋮     ⋮     
-   498 │ 0.00  0.00  0.00  0.00  
-   499 │ 0.00  0.00  0.00  0.00  
+ Sheet │ A          B          C          D          
+───────┼────────────────────────────────────────────
+     1 │ 0.05477    0.05501    0.05216    0.05295    
+     2 │ 0.001197   0.001213   0.001029   0.001071   
+     3 │ 0.009138   0.009208   0.008422   0.008632   
+     4 │ 0.000181   0.0001832  0.000154   0.0001603  
+     ⋮ │  ⋮          ⋮           ⋮          ⋮           
+   498 │ 0.000968   0.00098    0.00091    0.000932   
+   499 │ 8.86e-6    8.98e-6    7.85e-6    8.06e-6   
 
 julia> xl_columntable(sheet; alt_keys = Dict("A" => "O", "B" => "H", "C" => "L", "D" => "C"))
 (

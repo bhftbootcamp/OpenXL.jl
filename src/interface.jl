@@ -50,11 +50,11 @@ function Base.getindex(x::XLCell)
 end
 
 """
-    AbstractXLSheet <: AbstractArray{AbstractXLCell,2}
+    AbstractXLSheet <: AbstractArray{Any,2}
 
 Abstract supertype for [`XLSheet`](@ref) and [`SubXLSheet`](@ref).
 """
-abstract type AbstractXLSheet <: AbstractArray{AbstractXLCell,2} end
+abstract type AbstractXLSheet <: AbstractArray{Any,2} end
 
 """
     XLSheet <: AbstractXLSheet
@@ -84,15 +84,15 @@ julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 
 julia> sheet = xlsx["Stock"]
 41x6 XLSheet("Stock")
- Sheet │ A       B         C      D           E                 F                 
-───────┼─────────────────────────────────────────────────────────────────────────
-     1 │ "name"  "price"   "h24"  "volume"    "mkt"             "sector"          
-     2 │ "MSFT"  430.16    0.00   11,855,456  3,197,000,000,0…  "Technology Ser…  
-     3 │ "AAPL"  189.98    -0.00  36,327,000  2,913,000,000,0…  "Electronic Tec…  
-     4 │ "NVDA"  1,064.69  0.00   42,948,000  2,662,000,000,0…  "Electronic Tec…  
-     ⋮ │ ⋮       ⋮         ⋮      ⋮           ⋮                 ⋮                 
-    40 │ "JNJ"   146.97    0.00   7,173,000   353,710,000,000   "Health Technol…  
-    41 │ "ORCL"  122.91    -0.00  5,984,000   337,820,000,000   "Technology Ser… 
+ Sheet │ A     B        C        D            E          F                 
+───────┼──────────────────────────────────────────────────────────────────
+     1 │ name  price    h24      volume       mkt        sector            
+     2 │ MSFT  430.16   0.0007   1.1855456e7  3.197e12   Technology Serv…  
+     3 │ AAPL  189.98   -0.0005  3.6327e7     2.913e12   Electronic Tech…  
+     4 │ NVDA  1064.69  0.0045   4.2948e7     2.662e12   Electronic Tech…  
+     ⋮ │ ⋮     ⋮        ⋮        ⋮            ⋮          ⋮                 
+    40 │ JNJ   146.97   0.0007   7.173e6      3.5371e11  Health Technolo…  
+    41 │ ORCL  122.91   -0.0003  5.984e6      3.3782e11  Technology Serv… 
 ```
 """
 struct XLSheet <: AbstractXLSheet
@@ -103,10 +103,6 @@ end
 
 Base.size(x::AbstractXLSheet) = (size(x.table, 1), size(x.table, 2))
 Base.size(x::AbstractXLSheet, dim) = size(x.table, dim)
-
-function Base.collect(x::AbstractXLSheet)
-    return map(cell_value, x)
-end
 
 xl_sheetname(x::XLSheet) = x.name
 xl_table(x::XLSheet) = collect(x)
@@ -158,15 +154,15 @@ julia> xlsx = xl_parse(xl_sample_stock_xlsx())
 
 julia> xlsx["Stock"]["A1:D25"]
 25x4 SubXLSheet("Stock")
- Sheet │ A       B         C      D           
+ Sheet │ A     B        C        D            
 ───────┼─────────────────────────────────────
-     1 │ "name"  "price"   "h24"  "volume"    
-     2 │ "MSFT"  430.16    0.00   11,855,456  
-     3 │ "AAPL"  189.98    -0.00  36,327,000  
-     4 │ "NVDA"  1,064.69  0.00   42,948,000  
-     ⋮ │ ⋮       ⋮         ⋮      ⋮           
-    24 │ "NVDA"  1,064.69  0.00   42,948,000  
-    25 │ "GOOG"  176.33    -0.00  11,404,000 
+     1 │ name  price    h24      volume       
+     2 │ MSFT  430.16   0.0007   1.1855456e7  
+     3 │ AAPL  189.98   -0.0005  3.6327e7     
+     4 │ NVDA  1064.69  0.0045   4.2948e7     
+     ⋮ │ ⋮     ⋮        ⋮        ⋮              
+    24 │ NVDA  1064.69  0.0045   4.2948e7     
+    25 │ GOOG  176.33   -0.0006  1.1404e7  
 ```
 """
 struct SubXLSheet <: AbstractXLSheet
@@ -179,7 +175,7 @@ xl_sheetname(x::SubXLSheet) = xl_sheetname(parent(x))
 xl_table(x::SubXLSheet) = collect(x)
 
 function Base.getindex(x::AbstractXLSheet, i::Int, j::Int)
-    return x.table[i, j]
+    return x.table[i, j][]
 end
 
 function Base.getindex(x::AbstractXLSheet, inds::Vararg{Any,2})

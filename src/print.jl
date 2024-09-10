@@ -40,15 +40,15 @@ julia> xlsx = xl_parse(xl_sample_employee_xlsx())
  1001x13 XLSheet("Employee")
 
 julia> xl_print(xlsx["Employee"]; header = true)
- Sheet │ "eeid"    "full_name"       "job_title"       ⋯  "country"        "city"       "exit_date"  
-───────┼────────────────────────────────────────────────────────────────────────────────────────────
-     2 │ "E02387"  "Emily Davis"     "Sr. Manger"      ⋯  "United States"  "Seattle"    10-16-21     
-     3 │ "E04105"  "Theodore Dinh"   "Technical Arch…  ⋯  "China"          "Chongqing"  *            
-     4 │ "E02572"  "Luna Sanders"    "Director"        ⋯  "United States"  "Chicago"    *            
-     5 │ "E02832"  "Penelope Jorda…  "Computer Syste…  ⋯  "United States"  "Chicago"    *            
-     ⋮ │ ⋮         ⋮                 ⋮                 ⋯  ⋮                ⋮            ⋮            
-  1000 │ "E02521"  "Lily Nguyen"     "Sr. Analyst"     ⋯  "China"          "Chengdu"    *            
-  1001 │ "E03545"  "Sofia Cheng"     "Vice President"  ⋯  "United States"  "Miami"      *            
+ Sheet │ eeid    full_name        job_title         ⋯  city       exit_date        
+───────┼───────────────────────────────────────────────────────────────────────────
+     2 │ E02387  Emily Davis      Sr. Manger        ⋯  Seattle    2021-10-16T00:0… 
+     3 │ E04105  Theodore Dinh    Technical Archi…  ⋯  Chongqing  nothing          
+     4 │ E02572  Luna Sanders     Director          ⋯  Chicago    nothing          
+     5 │ E02832  Penelope Jordan  Computer System…  ⋯  Chicago    nothing          
+     ⋮ │ ⋮       ⋮                ⋮                 ⋯  ⋮          ⋮                  
+  1000 │ E02521  Lily Nguyen      Sr. Analyst       ⋯  Chengdu    nothing          
+  1001 │ E03545  Sofia Cheng      Vice President    ⋯  Miami      nothing 
 ```
 """
 function xl_print(

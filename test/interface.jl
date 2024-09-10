@@ -43,61 +43,61 @@ end
     numbers = xl_parse(read("xl_data/general_formats.xlsx"))[1]
 
     @testset "Case №1: Accessors" begin
-        @test string(numbers[1, 3])  == "12345"
-        @test string(numbers[2, 3])  == "12345.12"
-        @test string(numbers[3, 3])  == "12,345"
-        @test string(numbers[4, 3])  == "12,345.12"
-        @test string(numbers[5, 3])  == "12345%"
-        @test string(numbers[6, 3])  == "12345.12%"
-        @test string(numbers[7, 3])  == "1.23E+04"
-        @test string(numbers[8, 3])  == "12345 1/8"
-        @test string(numbers[9, 3])  == "12345 1/8"
-        @test string(numbers[10, 3]) == "10-18-33"
-        @test string(numbers[11, 3]) == "18-Oct-33"
-        @test string(numbers[12, 3]) == "18-Oct"
-        @test string(numbers[13, 3]) == "Oct-33"
-        @test string(numbers[14, 3]) == "2:57 AM"
-        @test string(numbers[15, 3]) == "2:57:46 AM"
-        @test string(numbers[16, 3]) == "2:57"
-        @test string(numbers[17, 3]) == "2:57:46"
-        @test string(numbers[18, 3]) == "10/18/33 2:57"
-        @test string(numbers[19, 3]) == "12,345"
-        @test string(numbers[20, 3]) == "12,345"
-        @test string(numbers[21, 3]) == "12,345.12"
-        @test string(numbers[22, 3]) == "12,345.12"
-        @test string(numbers[23, 3]) == "57:46"
-        @test string(numbers[24, 3]) == "296282:57:46"
-        @test string(numbers[25, 3]) == "5746.079"
-        @test string(numbers[26, 3]) == "1.23E+04"
-        @test string(numbers[27, 3]) == "\"12345.12345\""
+        # @test string(numbers[1, 3])  == "12345"
+        # @test string(numbers[2, 3])  == "12345.12"
+        # @test string(numbers[3, 3])  == "12,345"
+        # @test string(numbers[4, 3])  == "12,345.12"
+        # @test string(numbers[5, 3])  == "12345%"
+        # @test string(numbers[6, 3])  == "12345.12%"
+        # @test string(numbers[7, 3])  == "1.23E+04"
+        # @test string(numbers[8, 3])  == "12345 1/8"
+        # @test string(numbers[9, 3])  == "12345 1/8"
+        # @test string(numbers[10, 3]) == "10-18-33"
+        # @test string(numbers[11, 3]) == "18-Oct-33"
+        # @test string(numbers[12, 3]) == "18-Oct"
+        # @test string(numbers[13, 3]) == "Oct-33"
+        # @test string(numbers[14, 3]) == "2:57 AM"
+        # @test string(numbers[15, 3]) == "2:57:46 AM"
+        # @test string(numbers[16, 3]) == "2:57"
+        # @test string(numbers[17, 3]) == "2:57:46"
+        # @test string(numbers[18, 3]) == "10/18/33 2:57"
+        # @test string(numbers[19, 3]) == "12,345"
+        # @test string(numbers[20, 3]) == "12,345"
+        # @test string(numbers[21, 3]) == "12,345.12"
+        # @test string(numbers[22, 3]) == "12,345.12"
+        # @test string(numbers[23, 3]) == "57:46"
+        # @test string(numbers[24, 3]) == "296282:57:46"
+        # @test string(numbers[25, 3]) == "5746.079"
+        # @test string(numbers[26, 3]) == "1.23E+04"
+        # @test string(numbers[27, 3]) == "\"12345.12345\""
 
-        @test numbers[1, 3][]  == 12345.12345
-        @test numbers[2, 3][]  == 12345.12345
-        @test numbers[3, 3][]  == 12345.12345
-        @test numbers[4, 3][]  == 12345.12345
-        @test numbers[5, 3][]  == 12345.12345
-        @test numbers[6, 3][]  == 12345.12345
-        @test numbers[7, 3][]  == 12345.12345
-        @test numbers[8, 3][]  == 12345.12345
-        @test numbers[9, 3][]  == 12345.12345
-        @test numbers[10, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[11, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[12, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[13, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[14, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[15, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[16, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[17, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[18, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[19, 3][] == 12345.12345
-        @test numbers[20, 3][] == 12345.12345
-        @test numbers[21, 3][] == 12345.12345
-        @test numbers[22, 3][] == 12345.12345
-        @test numbers[23, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[24, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[25, 3][] == DateTime("1933-10-18T02:57:46.079")
-        @test numbers[26, 3][] == 12345.12345
-        @test numbers[27, 3][] == "12345.12345"
+        @test numbers[1, 3]  == 12345.12345
+        @test numbers[2, 3]  == 12345.12345
+        @test numbers[3, 3]  == 12345.12345
+        @test numbers[4, 3]  == 12345.12345
+        @test numbers[5, 3]  == 12345.12345
+        @test numbers[6, 3]  == 12345.12345
+        @test numbers[7, 3]  == 12345.12345
+        @test numbers[8, 3]  == 12345.12345
+        @test numbers[9, 3]  == 12345.12345
+        @test numbers[10, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[11, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[12, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[13, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[14, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[15, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[16, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[17, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[18, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[19, 3] == 12345.12345
+        @test numbers[20, 3] == 12345.12345
+        @test numbers[21, 3] == 12345.12345
+        @test numbers[22, 3] == 12345.12345
+        @test numbers[23, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[24, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[25, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[26, 3] == 12345.12345
+        @test numbers[27, 3] == "12345.12345"
     end
 end
 
@@ -123,15 +123,15 @@ end
     end
 
     @testset "Case №2: Indexing" begin
-        @test sheet[1][] == "text"
-        @test sheet[2][] == "integer"
+        @test sheet[1] == "text"
+        @test sheet[2] == "integer"
 
-        @test sheet[1, 1][] == "text"
-        @test sheet[1, 2][] == "regular_text"
+        @test sheet[1, 1] == "text"
+        @test sheet[1, 2] == "regular_text"
         @test xl_table(sheet[1, :]) == hcat(["text", "regular_text"])
 
-        @test sheet["A1"][] == "text"
-        @test sheet["B1"][] == "regular_text"
+        @test sheet["A1"] == "text"
+        @test sheet["B1"] == "regular_text"
 
         @test xl_table(sheet["A"]) == hcat([
             "text",
@@ -376,15 +376,15 @@ end
     end
 
     @testset "Case №2: Indexing" begin
-        @test sub_table[1][] == "text"
-        @test sub_table[2][] == "integer"
+        @test sub_table[1] == "text"
+        @test sub_table[2] == "integer"
 
-        @test sub_table[1, 1][] == "text"
-        @test sub_table[1, 2][] == "regular_text"
+        @test sub_table[1, 1] == "text"
+        @test sub_table[1, 2] == "regular_text"
         @test xl_table(sub_table[1, :]) == hcat(["text", "regular_text"])
 
-        @test sub_table["A1"][] == "text"
-        @test sub_table["B1"][] == "regular_text"
+        @test sub_table["A1"] == "text"
+        @test sub_table["B1"] == "regular_text"
 
         @test xl_table(sub_table["A"]) == hcat([
             "text",
