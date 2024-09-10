@@ -1,4 +1,4 @@
-#__ parser
+#__ xl_parser
 
 using ZipFile: Reader
 
@@ -57,19 +57,26 @@ function (x::Reader)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}
 end
 
 function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
-    return if cell.t == "inlineStr" # Inline string
+    return if cell.t == "inlineStr"
+        # Handle inline strings
         string(cell.is)
-    elseif cell.t == "s" # Shared string
+    elseif cell.t == "s"
+        # Handle shared strings
         string(x.sharedStrings.si[parse(Int64, cell.v._)+1])
-    elseif cell.t == "str" || !isnothing(cell.f) # Formula
+    elseif cell.t == "str" || !isnothing(cell.f)
+        # Handle formulas
         isnothing(cell.v) ? cell.f._ : cell.v._
-    elseif isnothing(cell.v) || isnothing(cell.v._) # Nothing
+    elseif isnothing(cell.v) || isnothing(cell.v._)
+        # Handle empty cells
         nothing
-    elseif cell.t == "b" # Bool
+    elseif cell.t == "b"
+        # Handle boolean values
         cell.v._ == "1"
-    elseif cell.t == "e" # Error
+    elseif cell.t == "e"
+        # Handle errors
         cell.v._
-    else                 # Number or DateTime
+    else
+        # Handle numbers or dates
         number = parse(Float64, cell.v._)
         fmt_id = x.styles[cell.s].numFmtId
         if cell.t == "d" || 14 <= fmt_id <= 22 || 45 <= fmt_id <= 47

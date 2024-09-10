@@ -12,14 +12,7 @@ export xl_parse,
     xl_ncol
 
 export cell_value,
-    cell_value!,
-    cell_format,
-    cell_format!
-
-export xl_format_cells!,
-    xl_format_rows!,
-    xl_format_cols!,
-    xl_format_sheet!
+    cell_format
 
 export AbstractXLSheet,
     XLError,
