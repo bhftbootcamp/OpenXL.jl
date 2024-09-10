@@ -1,10 +1,3 @@
-# <styleSheet>
-#     <cellXfs count="6">
-#         <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" .../>
-#         ...
-#     </cellXfs>
-# </styleSheet>
-
 module StylesXML
 
 export Styles
@@ -43,6 +36,12 @@ function Serde.deser(
     return T[]
 end
 
+# <styleSheet>
+#     <cellXfs count="6">
+#         <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" .../>
+#         ...
+#     </cellXfs>
+# </styleSheet>
 struct Styles <: ExcelFile
     cellXfs::CellXfsItem
 end

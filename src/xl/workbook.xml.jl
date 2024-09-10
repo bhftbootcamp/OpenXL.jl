@@ -1,10 +1,3 @@
-# <workbook>
-#     <sheets>
-#         <sheet state="visible" name="Sheet1" sheetId="1" r:id="rId1" />
-#         ...
-#     </sheets>
-# </workbook>
-
 module WorkbookXML
 
 export Workbook
@@ -30,6 +23,12 @@ function Serde.deser(
     return T[Serde.deser(T, x)]
 end
 
+# <workbook>
+#     <sheets>
+#         <sheet state="visible" name="Sheet1" sheetId="1" r:id="rId1" />
+#         ...
+#     </sheets>
+# </workbook>
 struct Workbook <: ExcelFile
     sheets::SheetsItem
 end
