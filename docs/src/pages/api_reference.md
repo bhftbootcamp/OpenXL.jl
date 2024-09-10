@@ -26,6 +26,7 @@ xl_print
 ## Utils
 
 ```@docs
+OpenXL.format_description
 OpenXL.index_to_column_letter
 OpenXL.column_letter_to_index
 ```

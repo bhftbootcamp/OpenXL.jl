@@ -2,7 +2,7 @@
 
 xlsx = xl_parse(read("xl_data/general_tables.xlsx"))
 
-@testset "Workbook interface" begin
+@testset "Workbook" begin
     @testset "Case №1: Accessors" begin
         @test length(xlsx) == 13
         @test xl_sheetnames(xlsx) == [
@@ -39,6 +39,68 @@ xlsx = xl_parse(read("xl_data/general_tables.xlsx"))
     end
 end
 
+@testset "Cell interface" begin
+    numbers = xl_parse(read("xl_data/general_formats.xlsx"))[1]
+
+    @testset "Case №1: Accessors" begin
+        # @test string(numbers[1, 3])  == "12345"
+        # @test string(numbers[2, 3])  == "12345.12"
+        # @test string(numbers[3, 3])  == "12,345"
+        # @test string(numbers[4, 3])  == "12,345.12"
+        # @test string(numbers[5, 3])  == "12345%"
+        # @test string(numbers[6, 3])  == "12345.12%"
+        # @test string(numbers[7, 3])  == "1.23E+04"
+        # @test string(numbers[8, 3])  == "12345 1/8"
+        # @test string(numbers[9, 3])  == "12345 1/8"
+        # @test string(numbers[10, 3]) == "10-18-33"
+        # @test string(numbers[11, 3]) == "18-Oct-33"
+        # @test string(numbers[12, 3]) == "18-Oct"
+        # @test string(numbers[13, 3]) == "Oct-33"
+        # @test string(numbers[14, 3]) == "2:57 AM"
+        # @test string(numbers[15, 3]) == "2:57:46 AM"
+        # @test string(numbers[16, 3]) == "2:57"
+        # @test string(numbers[17, 3]) == "2:57:46"
+        # @test string(numbers[18, 3]) == "10/18/33 2:57"
+        # @test string(numbers[19, 3]) == "12,345"
+        # @test string(numbers[20, 3]) == "12,345"
+        # @test string(numbers[21, 3]) == "12,345.12"
+        # @test string(numbers[22, 3]) == "12,345.12"
+        # @test string(numbers[23, 3]) == "57:46"
+        # @test string(numbers[24, 3]) == "296282:57:46"
+        # @test string(numbers[25, 3]) == "5746.079"
+        # @test string(numbers[26, 3]) == "1.23E+04"
+        # @test string(numbers[27, 3]) == "\"12345.12345\""
+
+        @test numbers[1, 3]  == 12345.12345
+        @test numbers[2, 3]  == 12345.12345
+        @test numbers[3, 3]  == 12345.12345
+        @test numbers[4, 3]  == 12345.12345
+        @test numbers[5, 3]  == 12345.12345
+        @test numbers[6, 3]  == 12345.12345
+        @test numbers[7, 3]  == 12345.12345
+        @test numbers[8, 3]  == 12345.12345
+        @test numbers[9, 3]  == 12345.12345
+        @test numbers[10, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[11, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[12, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[13, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[14, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[15, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[16, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[17, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[18, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[19, 3] == 12345.12345
+        @test numbers[20, 3] == 12345.12345
+        @test numbers[21, 3] == 12345.12345
+        @test numbers[22, 3] == 12345.12345
+        @test numbers[23, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[24, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[25, 3] == DateTime("1933-10-18T02:57:46.079")
+        @test numbers[26, 3] == 12345.12345
+        @test numbers[27, 3] == "12345.12345"
+    end
+end
+
 @testset "Sheet interface" begin
     sheet = xlsx["general"]
 
@@ -50,9 +112,9 @@ end
             "text"             "regular_text"
             "integer"       102.0
             "float"         102.2
-            "date"        30422.0
-            "hour"            1.8227199074074074
-            "datetime"    43206.805451388886
+            "date"             DateTime("1983-04-16T00:00:00")
+            "hour"             DateTime("1899-12-31T19:44:43")
+            "datetime"         DateTime("2018-04-16T19:19:50.999")
             "float cient"  -220.0
             "integer neg" -2000.0
             "bigint"          1.0e14
@@ -66,12 +128,12 @@ end
 
         @test sheet[1, 1] == "text"
         @test sheet[1, 2] == "regular_text"
-        @test sheet[1, :] == ["text", "regular_text"]
+        @test xl_table(sheet[1, :]) == hcat(["text", "regular_text"])
 
         @test sheet["A1"] == "text"
         @test sheet["B1"] == "regular_text"
 
-        @test sheet["A"] == hcat([
+        @test xl_table(sheet["A"]) == hcat([
             "text",
             "integer",
             "float",
@@ -87,10 +149,10 @@ end
         @test xl_table(sheet["A8:B"]) ==
               ["integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test sheet["A:B8"] ==
+        @test xl_table(sheet["A:B8"]) ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test sheet["A1:B2"] == ["text" "regular_text"; "integer" 102.0]
+        @test xl_table(sheet["A1:B2"]) == ["text" "regular_text"; "integer" 102.0]
         @test sheet["A:B"] == sheet[:, :]
 
         @test_throws XLError sheet["a1"]
@@ -116,9 +178,9 @@ end
             (A = "text", B = "regular_text"),
             (A = "integer", B = 102.0),
             (A = "float", B = 102.2),
-            (A = "date", B = 30422.0),
-            (A = "hour", B = 1.8227199074074074),
-            (A = "datetime", B = 43206.805451388886),
+            (A = "date", B = DateTime("1983-04-16T00:00:00")),
+            (A = "hour", B = DateTime("1899-12-31T19:44:43")),
+            (A = "datetime", B = DateTime("2018-04-16T19:19:50.999")),
             (A = "float cient", B = -220.0),
             (A = "integer neg", B = -2000.0),
             (A = "bigint", B = 1.0e14),
@@ -128,9 +190,9 @@ end
         @test xl_rowtable(sheet; header = true) == [
             (text = "integer", regular_text = 102.0),
             (text = "float", regular_text = 102.2),
-            (text = "date", regular_text = 30422.0),
-            (text = "hour", regular_text = 1.8227199074074074),
-            (text = "datetime", regular_text = 43206.805451388886),
+            (text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (text = "float cient", regular_text = -220.0),
             (text = "integer neg", regular_text = -2000.0),
             (text = "bigint", regular_text = 1.0e14),
@@ -140,9 +202,9 @@ end
         @test xl_rowtable(sheet; header = true, alt_keys = Dict("text" => "alt_text")) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -153,9 +215,9 @@ end
             (alt_text = "text", regular_text = "regular_text"),
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -165,9 +227,9 @@ end
         @test xl_rowtable(sheet; header = true, alt_keys = ["alt_text", "regular_text"]) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -191,9 +253,9 @@ end
                 "regular_text",
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -216,9 +278,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -241,9 +303,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -268,9 +330,9 @@ end
                 "regular_text",
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -293,9 +355,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -319,12 +381,12 @@ end
 
         @test sub_table[1, 1] == "text"
         @test sub_table[1, 2] == "regular_text"
-        @test sub_table[1, :] == ["text", "regular_text"]
+        @test xl_table(sub_table[1, :]) == hcat(["text", "regular_text"])
 
         @test sub_table["A1"] == "text"
         @test sub_table["B1"] == "regular_text"
 
-        @test sub_table["A"] == hcat([
+        @test xl_table(sub_table["A"]) == hcat([
             "text",
             "integer",
             "float",
@@ -337,13 +399,13 @@ end
             "bigint neg",
         ])
 
-        @test sub_table["A8:B"] ==
+        @test xl_table(sub_table["A8:B"]) ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test sub_table["A:B8"] ==
+        @test xl_table(sub_table["A:B8"]) ==
             [ "integer neg" -2000.0; "bigint" 1.0e14; "bigint neg" "-100000000000000"]
 
-        @test sub_table["A1:B2"] == ["text" "regular_text"; "integer" 102.0]
+        @test xl_table(sub_table["A1:B2"]) == ["text" "regular_text"; "integer" 102.0]
         @test sub_table["A:B"] == sub_table[:, :]
 
         @test_throws XLError sub_table["a1"]
@@ -371,11 +433,11 @@ end
         parent(sub_sub_table) == xlsx["general"]
         parent(sub_sub_table) == parent(sub_table)
 
-        sub_sub_table == [
+        xl_table(sub_sub_table) == [
             "text"          "regular_text"
             "integer"    102.0
             "float"      102.2
-            "date"     30422.0
+            "date"     DateTime("1983-04-16T00:00:00")
         ]
     end
 
@@ -384,9 +446,9 @@ end
             (A = "text", B = "regular_text"),
             (A = "integer", B = 102.0),
             (A = "float", B = 102.2),
-            (A = "date", B = 30422.0),
-            (A = "hour", B = 1.8227199074074074),
-            (A = "datetime", B = 43206.805451388886),
+            (A = "date", B = DateTime("1983-04-16T00:00:00")),
+            (A = "hour", B = DateTime("1899-12-31T19:44:43")),
+            (A = "datetime", B = DateTime("2018-04-16T19:19:50.999")),
             (A = "float cient", B = -220.0),
             (A = "integer neg", B = -2000.0),
             (A = "bigint", B = 1.0e14),
@@ -396,9 +458,9 @@ end
         @test xl_rowtable(sub_table; header = true) == [
             (text = "integer", regular_text = 102.0),
             (text = "float", regular_text = 102.2),
-            (text = "date", regular_text = 30422.0),
-            (text = "hour", regular_text = 1.8227199074074074),
-            (text = "datetime", regular_text = 43206.805451388886),
+            (text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (text = "float cient", regular_text = -220.0),
             (text = "integer neg", regular_text = -2000.0),
             (text = "bigint", regular_text = 1.0e14),
@@ -408,9 +470,9 @@ end
         @test xl_rowtable(sub_table; header = true, alt_keys = Dict("text" => "alt_text")) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -421,9 +483,9 @@ end
             (alt_text = "text", regular_text = "regular_text"),
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -433,9 +495,9 @@ end
         @test xl_rowtable(sub_table; header = true, alt_keys = ["alt_text", "regular_text"]) == [
             (alt_text = "integer", regular_text = 102.0),
             (alt_text = "float", regular_text = 102.2),
-            (alt_text = "date", regular_text = 30422.0),
-            (alt_text = "hour", regular_text = 1.8227199074074074),
-            (alt_text = "datetime", regular_text = 43206.805451388886),
+            (alt_text = "date", regular_text = DateTime("1983-04-16T00:00:00")),
+            (alt_text = "hour", regular_text = DateTime("1899-12-31T19:44:43")),
+            (alt_text = "datetime", regular_text = DateTime("2018-04-16T19:19:50.999")),
             (alt_text = "float cient", regular_text = -220.0),
             (alt_text = "integer neg", regular_text = -2000.0),
             (alt_text = "bigint", regular_text = 1.0e14),
@@ -459,9 +521,9 @@ end
                 "regular_text",
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -484,9 +546,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -509,9 +571,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -536,9 +598,9 @@ end
                 "regular_text",
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,
@@ -561,9 +623,9 @@ end
             regular_text = Any[
                 102.0,
                 102.2,
-                30422.0,
-                1.8227199074074074,
-                43206.805451388886,
+                DateTime("1983-04-16T00:00:00"),
+                DateTime("1899-12-31T19:44:43"),
+                DateTime("2018-04-16T19:19:50.999"),
                 -220.0,
                 -2000.0,
                 1.0e14,

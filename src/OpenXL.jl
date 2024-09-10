@@ -13,10 +13,13 @@ export xl_parse,
 
 export AbstractXLSheet,
     XLError,
+    XLCell,
     XLSheet,
     SubXLSheet,
     XLWorkbook
 
+using Dates
+using Printf
 using Serde
 using ZipFile
 

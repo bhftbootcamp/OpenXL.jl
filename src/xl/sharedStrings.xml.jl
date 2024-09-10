@@ -47,6 +47,12 @@ function Serde.deser(
     return T[]
 end
 
+# <sst count="999" uniqueCount="99">
+#     <si>
+#         <t>0</t>
+#     </si>
+#     ...
+# </sst>
 struct SharedStrings <: ExcelFile
     count::String
     uniqueCount::String

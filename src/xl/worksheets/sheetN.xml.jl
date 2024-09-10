@@ -56,7 +56,7 @@ end
 
 struct CellItem
     r::String
-    s::Union{Nothing,String}
+    s::Union{Nothing,Int64}
     t::Union{Nothing,String}
     v::Union{Nothing,ValueItem}
     is::Union{Nothing,InlineStringItem}
@@ -104,6 +104,22 @@ function Serde.deser(
     return T[]
 end
 
+# <worksheet>
+#     <sheetData>
+#         <row r="1" ht="15.75" customHeight="1">
+#             <c r="A1" s="1">
+#                 <v>1.0</v>
+#             </c>
+#             <c r="B1" s="2" t="s">
+#                 <v>0</v>
+#             </c>
+#             <c r="C1" s="3">
+#                 <v>12345.12345</v>
+#             </c>
+#         </row>
+#         ...
+#     </sheetData>
+# </worksheet>
 struct Worksheet <: ExcelFile
     sheetData::SheetDataItem
 end
