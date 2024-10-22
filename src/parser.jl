@@ -45,8 +45,7 @@ end
 
 function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
     try 
-        index = LibZip.ZipTools.locate_file(x, name)
-        deser_xml(T, read(x, index))
+        deser_xml(T, read(x, name))
     catch
         if Nothing <: T
             nothing
