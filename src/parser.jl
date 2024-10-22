@@ -1,7 +1,5 @@
 #__ xl_parser
 
-using ZipFile: Reader
-
 abstract type ExcelFile end
 
 include("xl/workbook.xml.jl")
@@ -27,32 +25,34 @@ struct XLDocument
     styles::Styles
 end
 
-function XLDocument(io::IOBuffer)
-    xl_reader = Reader(io)
+function XLDocument(x::Vector{UInt8})
+    xl_archive = ZipArchive(x)
     try
-        rels = xl_reader(WorkbookRels, "xl/_rels/workbook.xml.rels")
-        shared_strings = xl_reader(Union{Nothing,SharedStrings}, "xl/sharedStrings.xml")
-        workbook = xl_reader(Workbook, "xl/workbook.xml")
-        styles = xl_reader(Styles, "xl/styles.xml")
+        rels = xl_archive(WorkbookRels, "xl/_rels/workbook.xml.rels")
+        shared_strings = xl_archive(Union{Nothing,SharedStrings}, "xl/sharedStrings.xml")
+        workbook = xl_archive(Workbook, "xl/workbook.xml")
+        styles = xl_archive(Styles, "xl/styles.xml")
 
         worksheets = map(workbook.sheets.sheet) do sheet
-            xl_reader(Worksheet, joinpath("xl", rels[sheet.id].Target))
+            xl_archive(Worksheet, joinpath("xl", rels[sheet.id].Target))
         end
 
         XLDocument(rels, worksheets, shared_strings, workbook, styles)
     finally
-        close(xl_reader)
+        zip_discard(xl_archive)
     end
 end
 
-function (x::Reader)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
-    entry = findfirst(file -> file.name == name, x.files)
-    if isnothing(entry) && Nothing <: T
-        nothing
-    elseif isnothing(entry)
-        throw(ArgumentError("File $name not found in the ZIP archive."))
-    else
-        deser_xml(T, read(x.files[entry]))
+function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
+    try 
+        index = LibZip.ZipTools.locate_file(x, name)
+        deser_xml(T, read(x, index))
+    catch
+        if Nothing <: T
+            nothing
+        else
+            throw(ArgumentError("File $name not found in the ZIP archive."))
+        end
     end
 end
 
@@ -123,12 +123,7 @@ julia> xl_parse(raw_xlsx)
 ```
 """
 function xl_parse(x::Vector{UInt8})
-    io = IOBuffer(x)
-    try
-        convert(XLWorkbook, XLDocument(io))
-    finally
-        close(io)
-    end
+    return convert(XLWorkbook, XLDocument(x))
 end
 
 function xl_parse(x::AbstractString)

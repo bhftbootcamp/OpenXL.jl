@@ -21,7 +21,7 @@ export AbstractXLSheet,
 using Dates
 using Printf
 using Serde
-using ZipFile
+using LibZip
 
 struct XLError <: Exception
     message::String

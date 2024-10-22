@@ -4,11 +4,10 @@ version = "3.1.0"
 
 [deps]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+LibZip = "89089acc-ee81-44d2-83aa-3aa2951b1031"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Serde = "db9b398d-9517-45f8-9a95-92af99003e0e"
-ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 
 [compat]
 Serde = "3.0"
-ZipFile = "0.10"
 julia = "1.8"
