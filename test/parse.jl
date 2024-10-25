@@ -16,4 +16,9 @@
         @test_nowarn xl_parse(read("xl_data/simple_table.xltx"))
         @test_nowarn xl_parse(read("xl_data/simple_table.xltm"))
     end
+
+    @testset "Case №3: Reading xlsx files" begin
+        @test_nowarn xl_open("xl_data/simple_table.xlsx")
+        @test_nowarn xl_open(IOBuffer(read("xl_data/simple_table.xlsx")))
+    end
 end
