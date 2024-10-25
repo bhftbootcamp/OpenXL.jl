@@ -44,14 +44,13 @@ function XLDocument(x::Vector{UInt8})
 end
 
 function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
-    try 
-        deser_xml(T, read(x, name))
-    catch
-        if Nothing <: T
-            nothing
-        else
-            throw(ArgumentError("File $name not found in the ZIP archive."))
-        end
+    entry = findfirst(file -> file.name == name, collect(x))
+    if isnothing(entry) && Nothing <: T
+        nothing
+    elseif isnothing(entry)
+        throw(ArgumentError("File $name not found in the ZIP archive."))
+    else
+        deser_xml(T, read(x, entry - 1))
     end
 end
 
