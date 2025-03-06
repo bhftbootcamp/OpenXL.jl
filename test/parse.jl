@@ -21,4 +21,21 @@
         @test_nowarn xl_open("xl_data/simple_table.xlsx")
         @test_nowarn xl_open(IOBuffer(read("xl_data/simple_table.xlsx")))
     end
+
+    @testset "Case №3: Parsing date time" begin
+        datetimes = xl_parse(read("xl_data/datetime_types.xlsx"))[1]
+
+        @test datetimes[1,1] == DateTime("2025-03-06T00:00:00")
+        @test datetimes[1,2] == DateTime("2025-03-06T00:00:00")
+        @test datetimes[1,3] == DateTime("2025-03-06T00:00:00")
+        @test datetimes[1,4] == DateTime("2025-03-06T00:00:00")
+        @test datetimes[2,1] == DateTime("1899-12-30T11:02:10.614")
+        @test datetimes[2,2] == DateTime("1899-12-30T11:02:10.614")
+        @test datetimes[2,3] == DateTime("1899-12-30T11:02:10.614")
+        @test datetimes[2,4] == DateTime("1899-12-30T11:02:10.614")
+        @test datetimes[3,1] == DateTime("2025-03-06T11:02:19.704")
+        @test datetimes[3,2] == DateTime("2025-03-06T11:02:19.704")
+        @test datetimes[3,3] == 45722.45995027778
+        @test datetimes[3,4] == 45722.45995027778
+    end
 end
