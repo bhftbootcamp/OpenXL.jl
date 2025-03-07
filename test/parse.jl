@@ -38,4 +38,11 @@
         @test datetimes[3,3] == DateTime("2025-03-06T11:02:19.704")
         @test datetimes[3,4] == DateTime("2025-03-06T11:02:19.704")
     end
+
+    @testset "Case №4: Parsing bool" begin
+        bools = xl_parse(read("xl_data/bool_types.xlsx"))[1]
+
+        @test bools[1,1]
+        @test !bools[2,1]
+    end
 end
