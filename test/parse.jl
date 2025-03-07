@@ -35,7 +35,7 @@
         @test datetimes[2,4] == DateTime("1899-12-30T11:02:10.614")
         @test datetimes[3,1] == DateTime("2025-03-06T11:02:19.704")
         @test datetimes[3,2] == DateTime("2025-03-06T11:02:19.704")
-        @test datetimes[3,3] == 45722.45995027778
-        @test datetimes[3,4] == 45722.45995027778
+        @test datetimes[3,3] == DateTime("2025-03-06T11:02:19.704")
+        @test datetimes[3,4] == DateTime("2025-03-06T11:02:19.704")
     end
 end

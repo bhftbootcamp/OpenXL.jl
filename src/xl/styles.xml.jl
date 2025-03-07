@@ -85,7 +85,7 @@ Base.getindex(x::CellXfsItem, s::Nothing) = default_format_xf
 const default_format_fmt = numFmtItem(0, "")
 const default_format_fmts = CellnumFmtsItem(0, numFmtItem[])
 
-Base.getindex(x::CellnumFmtsItem, s::Int64) = get(x.numFmt, s, default_format_fmt)
+Base.getindex(x::CellnumFmtsItem, s::Int64) = get(x.numFmt, s + 1, default_format_fmt)
 Base.getindex(x::CellnumFmtsItem, s::Nothing) = default_format_fmt
 
 function Serde.deser(

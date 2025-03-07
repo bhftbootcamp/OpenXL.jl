@@ -76,10 +76,18 @@ function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
     else
         # Handle numbers or dates
         fmt_id = x.styles.cellXfs[cell.s].numFmtId
-        fmt_code = x.styles.numFmts[cell.s].formatCode
+        fmt_code = formatcode(x, fmt_id)
         number = parse(Float64, cell.v._)
         isdatetime(fmt_id, fmt_code, cell.t) ? xl_num2datetime(number) : number
     end
+end
+
+function formatcode(x::XLDocument, format_id::Int)
+    format_id < 164 && return ""
+    num_formats = x.styles.numFmts.numFmt
+    index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
+    
+    return isnothing(index) ? "" : num_formats[index].formatCode
 end
 
 function Base.convert(::Type{XLWorkbook}, xl::XLDocument)
