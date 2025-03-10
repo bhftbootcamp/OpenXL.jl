@@ -54,6 +54,14 @@ function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelF
     end
 end
 
+function formatcode(x::XLDocument, format_id::Int)
+    format_id < 164 && return ""
+    num_formats = x.styles.numFmts.numFmt
+    index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
+    
+    return isnothing(index) ? "" : num_formats[index].formatCode
+end
+
 function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
     return if cell.t == "inlineStr"
         # Handle inline strings
@@ -80,14 +88,6 @@ function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
         number = parse(Float64, cell.v._)
         isdatetime(fmt_id, fmt_code, cell.t) ? xl_num2datetime(number) : number
     end
-end
-
-function formatcode(x::XLDocument, format_id::Int)
-    format_id < 164 && return ""
-    num_formats = x.styles.numFmts.numFmt
-    index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
-    
-    return isnothing(index) ? "" : num_formats[index].formatCode
 end
 
 function Base.convert(::Type{XLWorkbook}, xl::XLDocument)

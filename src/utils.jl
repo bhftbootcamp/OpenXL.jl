@@ -350,11 +350,8 @@ function parse_cell_range(addr::AbstractString)
 end
 
 function isdatetime(fmt_id::Int64, fmt_code::String, cell_type::Union{Nothing,String})
-    date_tokens = r"[dD]{1,4}|[mM]{1,4}|[yY]{2,4}"
-    time_tokens = r"[hH]{1,2}|[mM]{1,2}|[sS]{1,2}"
-    
-    has_date = occursin(date_tokens, fmt_code)
-    has_time = occursin(time_tokens, fmt_code)
+    has_date = occursin(r"[dD]{1,4}|[mM]{1,4}|[yY]{2,4}", fmt_code)
+    has_time = occursin(r"[hH]{1,2}|[mM]{1,2}|[sS]{1,2}", fmt_code)
     
     return cell_type == "d" || 14 <= fmt_id <= 22 || 45 <= fmt_id <= 47 || has_date || has_time 
 end
