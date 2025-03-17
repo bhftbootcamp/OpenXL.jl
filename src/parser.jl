@@ -58,7 +58,6 @@ function formatcode(x::XLDocument, format_id::Int)
     format_id < 164 && return ""
     num_formats = x.styles.numFmts.numFmt
     index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
-    
     return isnothing(index) ? "" : num_formats[index].formatCode
 end
 
