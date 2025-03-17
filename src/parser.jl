@@ -108,7 +108,7 @@ Parse Excel file into [`XLWorkbook`](@ref) object.
 
 ## Examples
 ```julia-repl
-julia> raw_xlsx = xl_sample_employee_xlsx()
+julia> raw_xlsx = read("assets/employee_sample_data.xlsx")
 77626-element Vector{UInt8}:
  0x50
  0x4b

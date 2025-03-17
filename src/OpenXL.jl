@@ -36,6 +36,5 @@ include("interface.jl")
 include("parser.jl")
 include("table.jl")
 include("print.jl")
-include("sample_data.jl")
 
 end
