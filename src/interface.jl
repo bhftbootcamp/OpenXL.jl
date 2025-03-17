@@ -23,7 +23,7 @@ struct XLCell{T} <: AbstractXLCell
     value::T
     format::Int
 
-    function XLCell(val::T, id::Int) where {T<:Union{Nothing,String,Float64,DateTime}}
+    function XLCell(val::T, id::Int) where {T<:Union{Nothing,String,Float64,Bool,DateTime}}
         return new{T}(val, id)
     end
 end
@@ -78,7 +78,7 @@ See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
 ## Examples
 
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+julia> xlsx = xl_parse(read("assets/stock_sample_data.xlsx"))
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
 
@@ -148,7 +148,7 @@ See also: [`xl_rowtable`](@ref), [`xl_columntable`](@ref), [`xl_print`](@ref).
 
 ## Examples
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+julia> xlsx = xl_parse(read("assets/stock_sample_data.xlsx"))
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
 

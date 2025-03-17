@@ -17,7 +17,7 @@ Here is how you can use the basic interface for parsing and printing XL tables:
 ```julia-repl
 using OpenXL
 
-julia> raw_xlsx = xl_sample_ticker24h_xlsx()
+julia> raw_xlsx = read("assets/ticker24h_sample_data.xlsx")
 266033-element Vector{UInt8}:
  0x50
  0x4b
@@ -46,7 +46,7 @@ You can slice a table using address indexing and then convert the data to a row 
 ```julia-repl
 using OpenXL
 
-julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
+julia> xlsx = xl_parse(read("assets/ticker24h_sample_data.xlsx"))
 1-element XLWorkbook:
  2682x19 XLSheet("Ticker24h")
 
@@ -78,7 +78,7 @@ Table slices can be obtained in the same way as with a regular matrix, which can
 ```julia-repl
 using OpenXL
 
-julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
+julia> xlsx = xl_parse(read("assets/ticker24h_sample_data.xlsx"))
 1-element XLWorkbook:
  2682x19 XLSheet("Ticker24h")
 
@@ -109,7 +109,7 @@ If necessary, you can make a `DataFrame` object using a row representation of th
 using OpenXL
 using DataFrames
 
-julia> xlsx = xl_parse(xl_sample_ticker24h_xlsx())
+julia> xlsx = xl_parse(read("assets/ticker24h_sample_data.xlsx"))
 1-element XLWorkbook:
  2682x19 XLSheet("Ticker24h")
 

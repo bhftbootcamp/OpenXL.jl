@@ -1,7 +1,5 @@
 #__ xl_parser
 
-using ZipFile: Reader
-
 abstract type ExcelFile end
 
 include("xl/workbook.xml.jl")
@@ -27,33 +25,40 @@ struct XLDocument
     styles::Styles
 end
 
-function XLDocument(io::IOBuffer)
-    xl_reader = Reader(io)
+function XLDocument(x::Vector{UInt8})
+    xl_archive = ZipArchive(x)
     try
-        rels = xl_reader(WorkbookRels, "xl/_rels/workbook.xml.rels")
-        shared_strings = xl_reader(Union{Nothing,SharedStrings}, "xl/sharedStrings.xml")
-        workbook = xl_reader(Workbook, "xl/workbook.xml")
-        styles = xl_reader(Styles, "xl/styles.xml")
+        rels = xl_archive(WorkbookRels, "xl/_rels/workbook.xml.rels")
+        shared_strings = xl_archive(Union{Nothing,SharedStrings}, "xl/sharedStrings.xml")
+        workbook = xl_archive(Workbook, "xl/workbook.xml")
+        styles = xl_archive(Styles, "xl/styles.xml")
 
         worksheets = map(workbook.sheets.sheet) do sheet
-            xl_reader(Worksheet, joinpath("xl", rels[sheet.id].Target))
+            xl_archive(Worksheet, joinpath("xl", rels[sheet.id].Target))
         end
 
         XLDocument(rels, worksheets, shared_strings, workbook, styles)
     finally
-        close(xl_reader)
+        zip_discard(xl_archive)
     end
 end
 
-function (x::Reader)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
-    entry = findfirst(file -> file.name == name, x.files)
-    if isnothing(entry) && Nothing <: T
+function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelFile}}
+    has_entry = any(file -> file.name == name, collect(x))
+    if !has_entry && Nothing <: T
         nothing
-    elseif isnothing(entry)
+    elseif !has_entry
         throw(ArgumentError("File $name not found in the ZIP archive."))
     else
-        deser_xml(T, read(x.files[entry]))
+        deser_xml(T, read(x, name))
     end
+end
+
+function formatcode(x::XLDocument, format_id::Int)
+    format_id < 164 && return ""
+    num_formats = x.styles.numFmts.numFmt
+    index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
+    return isnothing(index) ? "" : num_formats[index].formatCode
 end
 
 function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
@@ -77,13 +82,10 @@ function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
         cell.v._
     else
         # Handle numbers or dates
+        fmt_id = x.styles.cellXfs[cell.s].numFmtId
+        fmt_code = formatcode(x, fmt_id)
         number = parse(Float64, cell.v._)
-        fmt_id = x.styles[cell.s].numFmtId
-        if cell.t == "d" || 14 <= fmt_id <= 22 || 45 <= fmt_id <= 47
-            xl_num2datetime(number)
-        else
-            number
-        end
+        isdatetime(fmt_id, fmt_code, cell.t) ? xl_num2datetime(number) : number
     end
 end
 
@@ -94,7 +96,7 @@ function Base.convert(::Type{XLWorkbook}, xl::XLDocument)
             for cell in row.c
                 column_addr = parse_cell_addr(cell.r).column
                 val = xl[cell]
-                result[row.r, column_addr] = XLCell(val, xl.styles[cell.s].numFmtId)
+                result[row.r, column_addr] = XLCell(val, xl.styles.cellXfs[cell.s].numFmtId)
             end
         end
         XLSheet(sheet_info.name, sheet_info.sheetId, result)
@@ -110,7 +112,7 @@ Parse Excel file into [`XLWorkbook`](@ref) object.
 
 ## Examples
 ```julia-repl
-julia> raw_xlsx = xl_sample_employee_xlsx()
+julia> raw_xlsx = read("assets/employee_sample_data.xlsx")
 77626-element Vector{UInt8}:
  0x50
  0x4b
@@ -123,12 +125,7 @@ julia> xl_parse(raw_xlsx)
 ```
 """
 function xl_parse(x::Vector{UInt8})
-    io = IOBuffer(x)
-    try
-        convert(XLWorkbook, XLDocument(io))
-    finally
-        close(io)
-    end
+    return convert(XLWorkbook, XLDocument(x))
 end
 
 function xl_parse(x::AbstractString)

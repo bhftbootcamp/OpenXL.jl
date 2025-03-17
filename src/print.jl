@@ -35,7 +35,7 @@ Print a `sheet` as a table representation.
 
 ## Examples
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_employee_xlsx())
+julia> xlsx = xl_parse(read("assets/employee_sample_data.xlsx"))
 1-element XLWorkbook:
  1001x13 XLSheet("Employee")
 

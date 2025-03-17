@@ -21,7 +21,7 @@ export AbstractXLSheet,
 using Dates
 using Printf
 using Serde
-using ZipFile
+using LibZip
 
 struct XLError <: Exception
     message::String
@@ -36,6 +36,5 @@ include("interface.jl")
 include("parser.jl")
 include("table.jl")
 include("print.jl")
-include("sample_data.jl")
 
 end

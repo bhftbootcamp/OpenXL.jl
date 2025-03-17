@@ -58,7 +58,7 @@ Creates a table row iterator. Row slices are returned as `NamedTuple`.
 
 ## Examples
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+julia> xlsx = xl_parse(read("assets/stock_sample_data.xlsx"))
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
 
@@ -90,7 +90,7 @@ Converts sheet rows to a `Vector` of `NamedTuples`.
 ## Examples
 
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+julia> xlsx = xl_parse(read("assets/stock_sample_data.xlsx"))
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
 
@@ -121,7 +121,7 @@ Converts sheet columns to a `Vector` of `NamedTuples`.
 ## Examples
 
 ```julia-repl
-julia> xlsx = xl_parse(xl_sample_stock_xlsx())
+julia> xlsx = xl_parse(read("assets/stock_sample_data.xlsx"))
 1-element XLWorkbook:
  41x6 XLSheet("Stock")
 
