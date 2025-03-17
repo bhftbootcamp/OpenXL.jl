@@ -54,8 +54,8 @@ end
 #     ...
 # </sst>
 struct SharedStrings <: ExcelFile
-    count::String
-    uniqueCount::String
+    count::Union{Nothing,String}
+    uniqueCount::Union{Nothing,String}
     si::Union{Nothing,Vector{SharedItem}}
 end
 

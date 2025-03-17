@@ -23,7 +23,7 @@ struct XLCell{T} <: AbstractXLCell
     value::T
     format::Int
 
-    function XLCell(val::T, id::Int) where {T<:Union{Nothing,String,Float64,DateTime}}
+    function XLCell(val::T, id::Int) where {T<:Union{Nothing,String,Float64,Bool,DateTime}}
         return new{T}(val, id)
     end
 end

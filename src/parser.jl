@@ -54,6 +54,13 @@ function (x::ZipArchive)(::Type{T}, name::String) where {T<:Union{Nothing,ExcelF
     end
 end
 
+function formatcode(x::XLDocument, format_id::Int)
+    format_id < 164 && return ""
+    num_formats = x.styles.numFmts.numFmt
+    index = findfirst(fmt -> fmt.numFmtId == format_id, num_formats)
+    return isnothing(index) ? "" : num_formats[index].formatCode
+end
+
 function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
     return if cell.t == "inlineStr"
         # Handle inline strings
@@ -75,13 +82,10 @@ function Base.getindex(x::XLDocument, cell::WorksheetXML.CellItem)
         cell.v._
     else
         # Handle numbers or dates
+        fmt_id = x.styles.cellXfs[cell.s].numFmtId
+        fmt_code = formatcode(x, fmt_id)
         number = parse(Float64, cell.v._)
-        fmt_id = x.styles[cell.s].numFmtId
-        if cell.t == "d" || 14 <= fmt_id <= 22 || 45 <= fmt_id <= 47
-            xl_num2datetime(number)
-        else
-            number
-        end
+        isdatetime(fmt_id, fmt_code, cell.t) ? xl_num2datetime(number) : number
     end
 end
 
@@ -92,7 +96,7 @@ function Base.convert(::Type{XLWorkbook}, xl::XLDocument)
             for cell in row.c
                 column_addr = parse_cell_addr(cell.r).column
                 val = xl[cell]
-                result[row.r, column_addr] = XLCell(val, xl.styles[cell.s].numFmtId)
+                result[row.r, column_addr] = XLCell(val, xl.styles.cellXfs[cell.s].numFmtId)
             end
         end
         XLSheet(sheet_info.name, sheet_info.sheetId, result)
