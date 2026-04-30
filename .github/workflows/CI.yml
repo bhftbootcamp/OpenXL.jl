@@ -33,7 +33,7 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
@@ -57,7 +57,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: julia-actions/setup-julia@latest
       - uses: julia-actions/cache@v2
       - name: Install dependencies
@@ -68,7 +68,7 @@ jobs:
         run: julia --project=docs/ docs/make.jl
       - name: Make comment with preview link
         if: ${{ github.event_name == 'pull_request' && github.event.action == 'opened'}}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
