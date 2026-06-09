@@ -11,7 +11,7 @@ struct XFItem
     fillId::Union{Nothing,Int64}
     borderId::Union{Nothing,Int64}
     xfId::Union{Nothing,Int64}
-    applyNumberFormat::Union{Nothing,Int64}
+    applyNumberFormat::Union{Nothing,Bool}
     quotePrefix::Union{Nothing,Int64}
 end
 
